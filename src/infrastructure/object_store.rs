@@ -309,9 +309,9 @@ impl ObjectStore {
         })
     }
 
-    /// Parse a signature from "name <email> timestamp" format
+    /// Parse a signature from "name \<email\> timestamp" format
     fn parse_signature(&self, sig_str: &str) -> crate::Result<Signature> {
-        // Format: "Name <email> timestamp"
+        // Format: "Name \<email\> timestamp"
         // Find the last space to separate timestamp from name/email
         if let Some(last_space) = sig_str.rfind(' ') {
             let name_email_part = &sig_str[..last_space];
@@ -322,7 +322,7 @@ impl ObjectStore {
             let datetime =
                 chrono::DateTime::from_timestamp(timestamp, 0).ok_or("Invalid timestamp")?;
 
-            // Parse name and email from "Name <email>" format
+            // Parse name and email from "Name \<email\>" format
             if let Some(email_start) = name_email_part.rfind(" <") {
                 let name = name_email_part[..email_start].to_string();
                 let email_part = &name_email_part[email_start + 2..];

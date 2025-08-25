@@ -50,7 +50,7 @@ impl GitRepository {
     /// ```
     pub fn new<P: AsRef<Path>>(root_path: P) -> Self {
         let root_path = root_path.as_ref().to_path_buf();
-        let git_dir = root_path.join(".git");
+        let git_dir = root_path.join(".git-rs");
         
         Self {
             root_path,
@@ -96,9 +96,9 @@ impl GitRepository {
         self.refs_dir().join("tags")
     }
     
-    /// Get the index file path
+    /// Get the index file path (using git-rs-index to avoid conflicts with Git's index)
     pub fn index_path(&self) -> PathBuf {
-        self.git_dir.join("index")
+        self.git_dir.join("git-rs-index")
     }
     
     /// Get the HEAD file path
@@ -155,17 +155,16 @@ impl GitRepository {
         }
     }
     
-    /// Check if a path is ignored by .gitignore rules
-    /// 
-    /// For now, this is a simple implementation that ignores .git directory
-    /// and common temporary files. A full implementation would parse .gitignore files.
+    /// Check if a file should be ignored
+    /// For now, this is a simple implementation that ignores .git directory,
+    /// common temporary files, and patterns from .gitignore.
     pub fn is_ignored<P: AsRef<Path>>(&self, path: P) -> bool {
         let path = path.as_ref();
         
         // Convert to string for easier pattern matching
         let path_str = path.to_string_lossy();
         
-        // Ignore .git directory
+        // Always ignore .git directory
         if path_str.contains(".git") {
             return true;
         }
@@ -175,6 +174,40 @@ impl GitRepository {
             || path_str.ends_with(".tmp") 
             || path_str.ends_with(".swp") {
             return true;
+        }
+        
+        // Check .gitignore patterns
+        if let Ok(gitignore_content) = std::fs::read_to_string(self.root_path.join(".gitignore")) {
+            for line in gitignore_content.lines() {
+                let line = line.trim();
+                
+                // Skip empty lines and comments
+                if line.is_empty() || line.starts_with('#') {
+                    continue;
+                }
+                
+                // Simple pattern matching
+                if line.ends_with('/') {
+                    // Directory pattern
+                    let pattern = &line[..line.len()-1];
+                    if path_str.starts_with(pattern) || path_str.contains(&format!("/{}/", pattern)) {
+                        return true;
+                    }
+                } else {
+                    // File or glob pattern
+                    if path_str.contains(line) || path_str.ends_with(line) {
+                        return true;
+                    }
+                    
+                    // Handle simple wildcards
+                    if line.starts_with("*.") {
+                        let extension = &line[2..];
+                        if path_str.ends_with(&format!(".{}", extension)) {
+                            return true;
+                        }
+                    }
+                }
+            }
         }
         
         false
@@ -219,7 +252,7 @@ mod tests {
         let repo = GitRepository::new(repo_path);
         
         assert_eq!(repo.root_path(), repo_path);
-        assert_eq!(repo.git_dir(), repo_path.join(".git"));
+        assert_eq!(repo.git_dir(), repo_path.join(".git-rs"));
         assert!(!repo.is_repository()); // No .git directory created yet
     }
     
@@ -232,7 +265,7 @@ mod tests {
         assert_eq!(repo.objects_dir(), repo_path.join(".git/objects"));
         assert_eq!(repo.refs_dir(), repo_path.join(".git/refs"));
         assert_eq!(repo.heads_dir(), repo_path.join(".git/refs/heads"));
-        assert_eq!(repo.index_path(), repo_path.join(".git/index"));
+        assert_eq!(repo.index_path(), repo_path.join(".git/git-rs-index"));
         assert_eq!(repo.head_path(), repo_path.join(".git/HEAD"));
         
         let hash = ObjectHash::new("1234567890abcdef1234567890abcdef12345678".to_string());

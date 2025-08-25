@@ -81,7 +81,7 @@ impl InitCommand {
     
     /// Create the basic .git directory structure
     fn create_git_directory_structure(repo: &GitRepository) -> crate::Result<()> {
-        println!("📁 Creating .git directory structure...");
+        println!("📁 Creating .git-rs directory structure...");
         
         // Create main .git directory
         fs::create_dir_all(repo.git_dir())?;
@@ -96,9 +96,9 @@ impl InitCommand {
         fs::create_dir_all(repo.heads_dir())?;
         fs::create_dir_all(repo.tags_dir())?;
         
-        println!("   ✓ Created .git/objects/ (object database)");
-        println!("   ✓ Created .git/refs/heads/ (branch references)"); 
-        println!("   ✓ Created .git/refs/tags/ (tag references)");
+        println!("   ✓ Created .git-rs/objects/ (object database)");
+        println!("   ✓ Created .git-rs/refs/heads/ (branch references)"); 
+        println!("   ✓ Created .git-rs/refs/tags/ (tag references)");
         
         Ok(())
     }
@@ -147,7 +147,7 @@ impl InitCommand {
         
         fs::write(repo.config_path(), config_content)?;
         
-        println!("   ✓ Created .git/config with default settings");
+        println!("   ✓ Created .git-rs/config with default settings");
         
         Ok(())
     }
@@ -159,7 +159,7 @@ impl InitCommand {
         
         fs::write(description_path, description_content)?;
         
-        println!("   ✓ Created .git/description");
+        println!("   ✓ Created .git-rs/description");
         
         Ok(())
     }

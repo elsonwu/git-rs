@@ -7,25 +7,21 @@ Complete reference for all git-rs commands with educational insights.
 Initialize a new git-rs repository.
 
 ### Syntax
-
 ```bash
 git-rs init [directory]
 ```
 
 ### What It Does
-
 Creates a new git-rs repository in the current directory (or specified directory), setting up the complete `.git-rs/` directory structure needed for version control.
 
 ### Educational Insights
-
 - **Repository Structure**: See exactly how Git organizes its internal data
 - **Object Database**: Understanding how Git prepares to store content
 - **Reference System**: How branches and HEAD are initialized
 - **Configuration**: Default settings that Git repositories need
 
 ### Directory Structure Created
-
-```text
+```
 .git-rs/
 ├── objects/          # Content-addressed object database
 │   ├── info/        # Object database metadata
@@ -39,7 +35,6 @@ Creates a new git-rs repository in the current directory (or specified directory
 ```
 
 ### Examples
-
 ```bash
 # Initialize in current directory
 git-rs init
@@ -49,7 +44,6 @@ git-rs init my-project
 ```
 
 ### Internal Process
-
 1. **Validation**: Check if directory is already a repository
 2. **Structure Creation**: Create `.git-rs/` and all subdirectories
 3. **Object Database**: Initialize empty object store with proper permissions
@@ -63,7 +57,6 @@ git-rs init my-project
 Stage files for the next commit.
 
 ### Syntax
-
 ```bash
 git-rs add <file>...
 git-rs add <directory>...
@@ -71,25 +64,21 @@ git-rs add .
 ```
 
 ### What It Does
-
 Reads file content, creates blob objects in the object database, and updates the staging area (index) to include these files in the next commit.
 
 ### Educational Insights
-
 - **Content Addressing**: See how identical content gets the same hash
 - **Blob Creation**: Understanding how Git stores file content
 - **Index Management**: How the staging area prepares commits
 - **Hash Calculation**: SHA-1 content addressing in action
 
 ### File Processing
-
-```text
+```
 File Content → Blob Object → Object Database → Index Update
 "Hello" → "blob 5\0Hello" → SHA-1 hash → .git-rs/objects/aa/bb...
 ```
 
 ### Examples
-
 ```bash
 # Add single file
 git-rs add README.md
@@ -105,7 +94,6 @@ git-rs add .
 ```
 
 ### Internal Process
-
 1. **File Resolution**: Expand paths and directories
 2. **Content Reading**: Read file bytes from disk
 3. **Hash Calculation**: Calculate SHA-1 of "blob <size>\0<content>"
@@ -113,7 +101,6 @@ git-rs add .
 5. **Index Update**: Record file path, hash, and metadata in staging area
 
 ### Object Storage Format
-
 ```rust
 // Blob object format
 let content = b"Hello World";
@@ -132,17 +119,14 @@ let hash = sha1::digest(&object);  // 5d41402abc4b2a76b9719d911017c592
 Show the working tree status.
 
 ### Syntax
-
 ```bash
 git-rs status
 ```
 
 ### What It Does
-
 Compares the working directory, staging area (index), and HEAD commit to show what files have been modified, staged, or are untracked.
 
 ### Educational Insights
-
 - **Three Trees**: Understanding Git's core data model
 - **Content Comparison**: How Git determines file changes
 - **Hash-Based Tracking**: Why Git is so efficient at change detection
@@ -151,9 +135,7 @@ Compares the working directory, staging area (index), and HEAD commit to show wh
 ### Status Categories
 
 #### Changes to be committed (Staged)
-
 Files in the staging area that differ from the last commit:
-
 ```bash
 Changes to be committed:
   new file:   README.md      # New file staged
@@ -162,9 +144,7 @@ Changes to be committed:
 ```
 
 #### Changes not staged for commit (Modified)
-
 Files in working directory that differ from staging area:
-
 ```bash
 Changes not staged for commit:
   modified:   README.md      # File modified after staging
@@ -172,9 +152,7 @@ Changes not staged for commit:
 ```
 
 #### Untracked files
-
 Files in working directory not in staging area:
-
 ```bash
 Untracked files:
   new_feature.rs            # New file not yet added
@@ -182,7 +160,6 @@ Untracked files:
 ```
 
 ### Examples
-
 ```bash
 # Show repository status
 git-rs status
@@ -194,8 +171,7 @@ git-rs status
 ```
 
 ### Internal Algorithm
-
-```text
+```
 1. Scan working directory → compute file hashes
 2. Load staging area (.git-rs/git-rs-index) → get staged hashes
 3. Load HEAD commit → get committed hashes (if any)
@@ -206,7 +182,6 @@ git-rs status
 ```
 
 ### Status Matrix
-
 | Working | Staged | HEAD | Status |
 |---------|--------|------|---------|
 | exists  | same   | same | Clean (no output) |
@@ -222,25 +197,19 @@ git-rs status
 ## 🚧 Future Commands (In Development)
 
 ### `git-rs commit`
-
 Create a new commit from staged changes.
-
 - **Tree Object Creation**: Build directory tree from staging area
 - **Commit Object**: Store snapshot with metadata (author, timestamp, message)
 - **Reference Update**: Move branch pointer to new commit
 
 ### `git-rs diff`
-
 Show changes between different states.
-
 - **Content Comparison**: Line-by-line differences
 - **Unified Format**: Standard diff output format
 - **Multiple Modes**: Working vs staged, staged vs committed
 
 ### `git-rs clone`
-
 Copy a repository from remote location.
-
 - **Object Transfer**: Download all objects from remote
 - **Reference Mapping**: Set up local branches
 - **Working Directory**: Populate files from HEAD commit
@@ -250,7 +219,6 @@ Copy a repository from remote location.
 ## 🎓 Educational Features
 
 ### Hash Exploration
-
 ```bash
 # After adding a file, explore the object:
 git-rs add hello.txt
@@ -263,7 +231,6 @@ zpipe -d < .git-rs/objects/5d/41402abc... | hexdump -C
 ```
 
 ### Index Inspection
-
 ```bash
 # View staging area (our index is JSON for readability)
 cat .git-rs/git-rs-index | jq .
@@ -273,7 +240,6 @@ jq '.entries | keys[]' .git-rs/git-rs-index
 ```
 
 ### Reference Tracking
-
 ```bash
 # See current branch
 cat .git-rs/HEAD
@@ -287,14 +253,12 @@ find .git-rs/refs/heads -type f
 ## 🔍 Troubleshooting
 
 ### "Not a git repository"
-
 ```bash
 # Solution: Initialize repository first
 git-rs init
 ```
 
 ### "Path not within repository"
-
 ```bash
 # Solution: Run commands from within repository root
 cd /path/to/repository
@@ -302,7 +266,6 @@ git-rs status
 ```
 
 ### "Permission denied"
-
 ```bash
 # Solution: Check file/directory permissions
 ls -la .git-rs/

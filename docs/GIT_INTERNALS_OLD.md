@@ -27,7 +27,7 @@ Git is fundamentally a **content-addressable filesystem** with a VCS interface. 
 
 When you run `git init`, Git creates a `.git` directory with this structure:
 
-```text
+```
 .git/
 |-- objects/          (Object database)
 |   |-- info/         (Metadata about objects)
@@ -56,7 +56,6 @@ When you run `git init`, Git creates a `.git` directory with this structure:
 ## Git Objects
 
 Git stores everything as objects in `.git/objects/`. Each object has:
-
 - **Type**: blob, tree, or commit
 - **Size**: Content size in bytes  
 - **Content**: The actual data
@@ -65,7 +64,6 @@ Git stores everything as objects in `.git/objects/`. Each object has:
 ### Object Storage Format
 
 Objects are stored compressed with zlib in files named by their hash:
-
 - Directory: First 2 characters of hash (e.g., `ab/`)
 - Filename: Remaining 38 characters (e.g., `cdef123...`)
 - Content: `zlib_compress("type size\0content")`
@@ -74,19 +72,17 @@ Objects are stored compressed with zlib in files named by their hash:
 
 Blobs store file content:
 
-```text
+```
 blob <size>\0<file content>
 ```
 
 Example:
-
-```text
+```
 blob 13\0Hello, World!
 ```
 
 **Visual representation:**
-
-```text
+```
 Working Directory    Object Database
 ┌─────────────────┐  ┌──────────────────────────┐
 │ README.md       │  │ objects/ab/cdef123...    │
@@ -98,19 +94,17 @@ Working Directory    Object Database
 
 Trees store directory information:
 
-```text
+```
 tree <size>\0<mode> <filename>\0<20-byte hash><mode> <filename>\0<20-byte hash>...
 ```
 
 Example:
-
-```text
+```
 tree 68\0100644 README.md\0<20-byte-hash>40000 src\0<20-byte-hash>
 ```
 
 **Visual representation:**
-
-```text
+```
 Directory Structure    Tree Object
 ┌─────────────────┐   ┌────────────────────────────┐
 │ project/        │   │ tree 68\0                  │
@@ -123,7 +117,7 @@ Directory Structure    Tree Object
 
 Commits store snapshots and metadata:
 
-```text
+```
 commit <size>\0tree <tree-hash>
 parent <parent-hash>
 author <name> <email> <timestamp>
@@ -133,8 +127,7 @@ committer <name> <email> <timestamp>
 ```
 
 **Visual representation:**
-
-```text
+```
 Commit Chain
 ┌─────────────────────────────────┐
 │ commit abc123...                │
@@ -186,8 +179,7 @@ abc123def456...
 ```
 
 **Visual representation:**
-
-```text
+```
 References           Object Database
 ┌─────────────────┐  ┌─────────────────────┐
 │ HEAD            │  │                     │
@@ -202,14 +194,12 @@ References           Object Database
 ## The Index (Staging Area)
 
 The index is a binary file (`.git/index`) that tracks:
-
 - Files to be included in the next commit
 - File metadata (timestamps, permissions, sizes)
 - Object hashes for staged content
 
 **Visual representation:**
-
-```text
+```
 Working Directory    Index (Staging)      Repository
 ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
 │ file1.txt       │  │ file1.txt       │  │ commit abc123   │
@@ -230,8 +220,7 @@ Working Directory    Index (Staging)      Repository
 5. Creates initial config and description files
 
 **After `git init`:**
-
-```text
+```
 .git/
 |-- objects/          (empty)
 |-- refs/heads/       (empty)
@@ -258,7 +247,6 @@ Working Directory    Index (Staging)      Repository
 ### `git diff` (Not yet implemented)
 
 Compares content between:
-
 - Working directory vs index (`git diff`)
 - Index vs last commit (`git diff --cached`)
 - Two commits (`git diff commit1 commit2`)

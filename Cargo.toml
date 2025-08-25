@@ -1,0 +1,29 @@
+[package]
+name = "git-rs"
+version = "0.1.0"
+edition = "2021"
+authors = ["Elson Wu <elsonwu@outlook.com>"]
+description = "A minimal Git implementation in Rust for educational purposes"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/elsonwu/git-rs"
+
+[[bin]]
+name = "git-rs"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.4", features = ["derive"] }
+sha1 = "0.10"
+flate2 = "1.0"
+hex = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+anyhow = "1.0"
+thiserror = "1.0"
+
+[dev-dependencies]
+tempfile = "3.8"
+assert_cmd = "2.0"
+predicates = "3.0"

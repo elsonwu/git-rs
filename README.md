@@ -63,8 +63,8 @@ src/
 
 ## 📋 Implementation Steps
 
-- [ ] **Step 1**: Domain modeling and project setup
-- [ ] **Step 2**: `git init` - Repository initialization
+- [x] **Step 1**: Domain modeling and project setup
+- [x] **Step 2**: `git init` - Repository initialization
 - [ ] **Step 3**: Object storage system (blobs, trees, commits)
 - [ ] **Step 4**: `git add` - Staging files
 - [ ] **Step 5**: `git commit` - Creating commits

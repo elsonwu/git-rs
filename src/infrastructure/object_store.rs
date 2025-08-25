@@ -303,37 +303,35 @@ impl ObjectStore {
         })
     }
     
-    /// Parse a signature from "name <email> timestamp timezone" format
+    /// Parse a signature from "name <email> timestamp" format
     fn parse_signature(&self, sig_str: &str) -> crate::Result<Signature> {
-        // Simple parsing - in real implementation, this would be more robust
-        let parts: Vec<&str> = sig_str.rsplitn(2, ' ').collect();
-        if parts.len() != 2 {
-            return Err("Invalid signature format".into());
-        }
-        
-        let timestamp_str = parts[1];
-        let name_email = parts[0];
-        
-        // Parse timestamp
-        let timestamp: i64 = timestamp_str.parse()?;
-        let datetime = chrono::DateTime::from_timestamp(timestamp, 0)
-            .ok_or("Invalid timestamp")?;
-        
-        // Parse name and email from "Name <email>" format
-        if let Some(email_start) = name_email.rfind(" <") {
-            let name = name_email[..email_start].to_string();
-            let email_part = &name_email[email_start + 2..];
-            if let Some(email_end) = email_part.find('>') {
-                let email = email_part[..email_end].to_string();
-                return Ok(Signature {
-                    name,
-                    email,
-                    timestamp: datetime,
-                });
+        // Format: "Name <email> timestamp"
+        // Find the last space to separate timestamp from name/email
+        if let Some(last_space) = sig_str.rfind(' ') {
+            let name_email_part = &sig_str[..last_space];
+            let timestamp_str = &sig_str[last_space + 1..];
+            
+            // Parse timestamp
+            let timestamp: i64 = timestamp_str.parse()?;
+            let datetime = chrono::DateTime::from_timestamp(timestamp, 0)
+                .ok_or("Invalid timestamp")?;
+            
+            // Parse name and email from "Name <email>" format
+            if let Some(email_start) = name_email_part.rfind(" <") {
+                let name = name_email_part[..email_start].to_string();
+                let email_part = &name_email_part[email_start + 2..];
+                if let Some(email_end) = email_part.find('>') {
+                    let email = email_part[..email_end].to_string();
+                    return Ok(Signature {
+                        name,
+                        email,
+                        timestamp: datetime,
+                    });
+                }
             }
         }
         
-        Err("Invalid name/email format".into())
+        Err(format!("Invalid signature format: '{}'", sig_str).into())
     }
 }
 
@@ -382,12 +380,21 @@ mod tests {
         let store = ObjectStore::new(temp_dir.path().join("objects"));
         store.init().unwrap();
         
-        let commit = CommitObject::new(
-            ObjectHash::new("abcdef1234567890abcdef1234567890abcdef12".to_string()),
-            vec![],
-            Signature::new("Test User".to_string(), "test@example.com".to_string()),
-            "Initial commit".to_string(),
-        );
+        // Create signature with specific timestamp to avoid precision issues
+        let timestamp = chrono::DateTime::from_timestamp(1692960000, 0).unwrap(); // Fixed timestamp
+        let signature = Signature {
+            name: "Test User".to_string(),
+            email: "test@example.com".to_string(),
+            timestamp,
+        };
+        
+        let commit = CommitObject {
+            tree: ObjectHash::new("abcdef1234567890abcdef1234567890abcdef12".to_string()),
+            parents: vec![],
+            author: signature.clone(),
+            committer: signature,
+            message: "Initial commit".to_string(),
+        };
         
         let commit_object = GitObject::Commit(commit);
         let hash = store.store_object(&commit_object).unwrap();

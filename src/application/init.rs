@@ -16,17 +16,17 @@ use crate::infrastructure::*;
 /// 5. Creates initial configuration
 /// 
 /// ## Visual Guide - .git Directory Structure After Init:
-/// ```
+/// ```text
 /// .git/
-/// ├── objects/          # Object database (empty initially)
-/// │   ├── info/
-/// │   └── pack/
-/// ├── refs/             # References
-/// │   ├── heads/        # Branch references (empty initially)
-/// │   └── tags/         # Tag references (empty initially)
-/// ├── HEAD              # Current branch: "ref: refs/heads/main"
-/// ├── config            # Repository configuration
-/// └── description       # Repository description
+/// |-- objects/          (Object database - empty initially)
+/// |   |-- info/
+/// |   `-- pack/
+/// |-- refs/             (References)
+/// |   |-- heads/        (Branch references - empty initially)
+/// |   `-- tags/         (Tag references - empty initially)
+/// |-- HEAD              (Current branch: "ref: refs/heads/main")
+/// |-- config            (Repository configuration)
+/// `-- description       (Repository description)
 /// ```
 pub struct InitCommand;
 

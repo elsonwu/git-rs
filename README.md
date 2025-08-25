@@ -1,5 +1,10 @@
 # Git-RS: Educational Git Implementation 🦀
 
+[![CI](https://github.com/elsonwu/git-rs/workflows/CI/badge.svg)](https://github.com/elsonwu/git-rs/actions/workflows/ci.yml)
+[![Documentation](https://github.com/elsonwu/git-rs/workflows/Documentation/badge.svg)](https://github.com/elsonwu/git-rs/actions/workflows/docs.yml)
+[![Quality](https://github.com/elsonwu/git-rs/workflows/Quality/badge.svg)](https://github.com/elsonwu/git-rs/actions/workflows/quality.yml)
+[![Maintenance](https://github.com/elsonwu/git-rs/workflows/Maintenance/badge.svg)](https://github.com/elsonwu/git-rs/actions/workflows/maintenance.yml)
+
 A minimal Git implementation in Rust designed for learning Git internals and understanding how version control systems work under the hood.
 
 ## 🎯 Project Goals

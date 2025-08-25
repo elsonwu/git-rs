@@ -142,7 +142,7 @@ impl AddCommand {
             let abs_path = if path.is_absolute() {
                 path.to_path_buf()
             } else {
-                std::env::current_dir()?.join(path)
+                repo.root_path.join(path)
             };
 
             // Check if path exists

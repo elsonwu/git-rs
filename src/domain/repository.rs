@@ -262,15 +262,15 @@ mod tests {
         let repo_path = temp_dir.path();
         let repo = GitRepository::new(repo_path);
 
-        assert_eq!(repo.objects_dir(), repo_path.join(".git/objects"));
-        assert_eq!(repo.refs_dir(), repo_path.join(".git/refs"));
-        assert_eq!(repo.heads_dir(), repo_path.join(".git/refs/heads"));
-        assert_eq!(repo.index_path(), repo_path.join(".git/git-rs-index"));
-        assert_eq!(repo.head_path(), repo_path.join(".git/HEAD"));
+        assert_eq!(repo.objects_dir(), repo_path.join(".git-rs/objects"));
+        assert_eq!(repo.refs_dir(), repo_path.join(".git-rs/refs"));
+        assert_eq!(repo.heads_dir(), repo_path.join(".git-rs/refs/heads"));
+        assert_eq!(repo.index_path(), repo_path.join(".git-rs/git-rs-index"));
+        assert_eq!(repo.head_path(), repo_path.join(".git-rs/HEAD"));
 
         let hash = ObjectHash::new("1234567890abcdef1234567890abcdef12345678".to_string());
         let expected_path =
-            repo_path.join(".git/objects/12/34567890abcdef1234567890abcdef12345678");
+            repo_path.join(".git-rs/objects/12/34567890abcdef1234567890abcdef12345678");
         assert_eq!(repo.object_path(&hash), expected_path);
     }
 

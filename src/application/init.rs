@@ -272,7 +272,7 @@ mod tests {
         let info = InitCommand::get_repository_info(&repo);
 
         assert_eq!(info.root_path, repo_path);
-        assert_eq!(info.git_dir, repo_path.join(".git"));
+        assert_eq!(info.git_dir, repo_path.join(".git-rs"));
         assert!(!info.is_bare);
         assert_eq!(info.current_branch, None);
         assert_eq!(info.head_commit, None);

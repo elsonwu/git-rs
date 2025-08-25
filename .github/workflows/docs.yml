@@ -6,13 +6,15 @@ on:
     paths:
       - 'src/**'
       - '*.md'
-      - 'docs/**'
+      - 'docs/**/*.md'
+      - 'Cargo.toml'
   pull_request:
     branches: [ main ]
     paths:
       - 'src/**'
       - '*.md'
-      - 'docs/**'
+      - 'docs/**/*.md'
+      - 'Cargo.toml'
 
 jobs:
   docs:

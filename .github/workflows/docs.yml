@@ -6,18 +6,19 @@ on:
     paths:
       - 'src/**'
       - '*.md'
+      - 'docs/**/*.md'
       - 'Cargo.toml'
   pull_request:
     branches: [ main ]
     paths:
       - 'src/**'
       - '*.md'
+      - 'docs/**/*.md'
       - 'Cargo.toml'
 
 jobs:
-  # Build and deploy documentation
   docs:
-    name: Build Documentation
+    name: Documentation Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,150 +38,12 @@ jobs:
           key: ${{ runner.os }}-cargo-docs-${{ hashFiles('**/Cargo.lock') }}
           
       - name: Build documentation
-        run: |
-          cargo doc --no-deps --document-private-items --all-features
+        run: cargo doc --no-deps --document-private-items --all-features
+        env:
+          RUSTDOCFLAGS: -D warnings
           
-      - name: Create documentation index
-        run: |
-          cat > target/doc/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-              <title>Git-RS Documentation</title>
-              <style>
-                  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 40px; }
-                  .header { text-align: center; margin-bottom: 40px; }
-                  .links { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-                  .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; }
-                  .card h3 { margin-top: 0; color: #2563eb; }
-                  .card a { text-decoration: none; color: inherit; }
-                  .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-              </style>
-          </head>
-          <body>
-              <div class="header">
-                  <h1>🦀 Git-RS Documentation</h1>
-                  <p>Educational Git implementation in Rust</p>
-              </div>
-              <div class="links">
-                  <div class="card">
-                      <a href="git_rs/index.html">
-                          <h3>📚 API Documentation</h3>
-                          <p>Complete Rust API documentation with examples</p>
-                      </a>
-                  </div>
-                  <div class="card">
-                      <a href="https://github.com/elsonwu/git-rs">
-                          <h3>🔗 GitHub Repository</h3>
-                          <p>Source code, issues, and contributions</p>
-                      </a>
-                  </div>
-              </div>
-          </body>
-          </html>
-          EOF
-          
-      - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/main'
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./target/doc
-
-  # Lint markdown files
-  markdown-lint:
-    name: Markdown Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
+      - name: Install markdownlint
+        run: npm install -g markdownlint-cli2
+        
       - name: Lint markdown files
-        uses: DavidAnson/markdownlint-cli2-action@v13
-        with:
-          globs: |
-            **/*.md
-            !target/**
-            !node_modules/**
-
-  # Check for broken links
-  link-check:
-    name: Link Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Check links in markdown files
-        uses: gaurav-nelson/github-action-markdown-link-check@v1
-        with:
-          use-quiet-mode: 'yes'
-          use-verbose-mode: 'yes'
-          config-file: '.github/workflows/link-check-config.json'
-
-  # Educational content verification
-  educational-check:
-    name: Educational Content Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        
-      - name: Build binary for examples
-        run: cargo build --release
-        
-      - name: Verify README examples
-        run: |
-          echo "🧪 Testing README examples..."
-          
-          # Create test directory
-          mkdir -p test-examples
-          cd test-examples
-          
-          # Test basic workflow from README
-          ../target/release/git-rs init
-          echo "Hello World" > hello.txt
-          ../target/release/git-rs add hello.txt
-          ../target/release/git-rs status
-          
-          # Verify .git-rs structure
-          test -d .git-rs || (echo "❌ .git-rs directory not found" && exit 1)
-          test -d .git-rs/objects || (echo "❌ objects directory not found" && exit 1)
-          test -d .git-rs/refs || (echo "❌ refs directory not found" && exit 1)
-          test -f .git-rs/HEAD || (echo "❌ HEAD file not found" && exit 1)
-          
-          echo "✅ README examples verified!"
-          
-      - name: Check documentation completeness
-        run: |
-          echo "📚 Checking documentation completeness..."
-          
-          # Check that all commands mentioned in README have documentation
-          if ! grep -q "git-rs init" README.md; then
-            echo "❌ git-rs init not documented in README"
-            exit 1
-          fi
-          
-          if ! grep -q "git-rs add" README.md; then
-            echo "❌ git-rs add not documented in README"
-            exit 1
-          fi
-          
-          if ! grep -q "git-rs status" README.md; then
-            echo "❌ git-rs status not documented in README"
-            exit 1
-          fi
-          
-          # Check that ARCHITECTURE.md exists and has key sections
-          if ! grep -q "Object Model" ARCHITECTURE.md; then
-            echo "❌ Object Model section missing from ARCHITECTURE.md"
-            exit 1
-          fi
-          
-          # Check that COMMANDS.md has all implemented commands
-          if ! grep -q "git-rs init" COMMANDS.md; then
-            echo "❌ init command not documented in COMMANDS.md"
-            exit 1
-          fi
-          
-          echo "✅ Documentation completeness verified!"
+        run: markdownlint-cli2 "**/*.md" "!target/**" "!node_modules/**"

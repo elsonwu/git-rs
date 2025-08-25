@@ -6,7 +6,7 @@ This document provides a deep dive into Git's internal mechanisms as implemented
 
 Our implementation uses `.git-rs/` to avoid conflicts with real Git repositories:
 
-```
+```text
 .git-rs/
 ├── objects/              # Object database (content-addressed storage)
 │   ├── 5a/
@@ -34,7 +34,8 @@ Our implementation uses `.git-rs/` to avoid conflicts with real Git repositories
 Git stores everything as objects in a content-addressed database:
 
 ### Blob Objects (File Content)
-```
+
+```text
 Format: "blob <size>\0<content>"
 Example: "blob 11\0Hello World"
 SHA-1: 5d41402abc4b2a76b9719d911017c592
@@ -42,14 +43,16 @@ Storage: .git-rs/objects/5d/41402abc4b2a76b9719d911017c592
 ```
 
 ### Tree Objects (Directory Listings)
-```
+
+```text
 Format: "tree <size>\0<entries>"
 Entry: "<mode> <name>\0<20-byte-sha>"
 Example: "tree 37\0100644 hello.txt\0[20-byte-hash]"
 ```
 
 ### Commit Objects (Snapshots)
-```
+
+```text
 Format: "commit <size>\0<content>"
 Content:
 tree <tree-hash>
@@ -65,22 +68,26 @@ committer <name> <email> <timestamp> <timezone>
 Git manages content through three main areas:
 
 ### 1. Working Directory
+
 - Your actual files on disk
 - What you see and edit
 - Can contain untracked files
 
 ### 2. Staging Area (Index)
+
 - Snapshot of what will go into the next commit
 - Stored in `.git-rs/git-rs-index` (JSON format in our implementation)
 - Acts as a buffer between working directory and repository
 
 ### 3. Repository (HEAD)
+
 - The last committed snapshot
 - Stored as commit objects in `.git-rs/objects/`
 - Referenced by branch pointers in `.git-rs/refs/heads/`
 
 ### State Transitions
-```
+
+```text
 Working Directory ──add──▶ Staging Area ──commit──▶ Repository
       ▲                                                 │
       └─────────────── checkout ─────────────────────┘
@@ -113,6 +120,7 @@ Our implementation uses JSON for educational clarity:
 ```
 
 **File Modes:**
+
 - `100644`: Regular file
 - `100755`: Executable file
 - `120000`: Symbolic link
@@ -123,16 +131,19 @@ Our implementation uses JSON for educational clarity:
 References are human-readable names pointing to objects:
 
 ### HEAD
+
 - Points to current branch
 - Content: `ref: refs/heads/main`
 - Special case: detached HEAD contains commit hash directly
 
 ### Branches
+
 - Stored in `.git-rs/refs/heads/`
 - Each file contains a commit hash
 - Example: `.git-rs/refs/heads/main` → `a1b2c3d4...`
 
-### Tags  
+### Tags
+
 - Stored in `.git-rs/refs/tags/`
 - Point to commit objects (or tag objects for annotated tags)
 - Example: `.git-rs/refs/tags/v1.0` → `e5f6g7h8...`
@@ -142,6 +153,7 @@ References are human-readable names pointing to objects:
 Git uses SHA-1 for content addressing:
 
 ### Blob Hash Calculation
+
 ```rust
 fn calculate_blob_hash(content: &[u8]) -> String {
     let header = format!("blob {}\0", content.len());
@@ -151,6 +163,7 @@ fn calculate_blob_hash(content: &[u8]) -> String {
 ```
 
 ### Tree Hash Calculation
+
 ```rust
 fn calculate_tree_hash(entries: &[(String, String, String)]) -> String {
     let mut content = Vec::new();
@@ -171,7 +184,7 @@ fn calculate_tree_hash(entries: &[(String, String, String)]) -> String {
 
 How git-rs determines file status:
 
-```
+```text
 1. Scan working directory → get current file hashes
 2. Load staging area → get staged file hashes  
 3. Load HEAD commit → get committed file hashes
@@ -183,6 +196,7 @@ How git-rs determines file status:
 ```
 
 ### Status Matrix
+
 | Working | Staged | HEAD | Status |
 |---------|--------|------|---------|
 | A       | A      | A    | Clean |
@@ -196,6 +210,7 @@ How git-rs determines file status:
 ## 🗜️ Object Storage Details
 
 ### Compression
+
 Objects are compressed using zlib deflate:
 
 ```rust
@@ -210,7 +225,9 @@ fn compress_object(content: &[u8]) -> Result<Vec<u8>> {
 ```
 
 ### Directory Structure
+
 Objects are stored with first 2 hex digits as directory name:
+
 - Hash: `a1b2c3d4e5f6...`
 - Path: `.git-rs/objects/a1/b2c3d4e5f6...`
 
@@ -219,18 +236,21 @@ This prevents having too many files in one directory.
 ## 🔍 Educational Insights
 
 ### Why Content Addressing?
+
 1. **Deduplication**: Identical content stored only once
 2. **Integrity**: Corruption changes hash, detectable
 3. **Distributed**: Objects transferable between repositories
 4. **Immutability**: Objects never change, only referenced
 
 ### Why Three Trees?
+
 1. **Flexibility**: Stage partial changes
 2. **Safety**: Review before committing
 3. **Efficiency**: Only stage what changed
 4. **Workflows**: Support complex merge scenarios
 
 ### Why SHA-1 (historically)?
+
 1. **Collision resistance**: Extremely unlikely for different content
 2. **Performance**: Fast to calculate
 3. **Fixed size**: Always 40 hex characters
@@ -239,6 +259,7 @@ This prevents having too many files in one directory.
 ## 🚀 Implementation Benefits
 
 Our educational implementation:
+
 - **Uses JSON** for index (readable vs binary)
 - **Comprehensive logging** shows internal operations
 - **Separate directory** (`.git-rs/`) avoids conflicts
@@ -248,6 +269,7 @@ Our educational implementation:
 ## 🔬 Debugging Git Internals
 
 ### Inspect Objects
+
 ```bash
 # Find all objects
 find .git-rs/objects -type f
@@ -260,6 +282,7 @@ zpipe -d < .git-rs/objects/5d/41402abc... | hexdump -C
 ```
 
 ### Inspect Index
+
 ```bash
 # View staging area
 cat .git-rs/git-rs-index | jq .
@@ -269,6 +292,7 @@ jq '.entries | keys[]' .git-rs/git-rs-index
 ```
 
 ### Inspect References
+
 ```bash
 # Current branch
 cat .git-rs/HEAD
@@ -287,5 +311,3 @@ cat .git-rs/refs/heads/main
 3. **Branch operations**: Create, switch, merge branches
 4. **Remote operations**: Clone, fetch, push
 5. **Advanced features**: Rebasing, cherry-picking, submodules
-
-This foundation provides deep understanding of Git's core principles!

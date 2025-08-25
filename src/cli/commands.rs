@@ -1,5 +1,7 @@
 use std::path::Path;
 use crate::application::init::InitCommand;
+use crate::application::add::{AddCommand, AddOptions};
+use crate::application::status::{StatusCommand, StatusOptions};
 
 /// CLI Command Handler
 /// 
@@ -23,10 +25,43 @@ impl GitCommand {
         Ok(())
     }
     
-    /// Handle `git add` command (placeholder)
+    /// Handle `git add` command
     pub fn add(files: &[String]) -> crate::Result<()> {
         println!("git-rs add {:?}", files);
-        println!("⚠️  Add functionality not implemented yet");
+        println!("==================");
+        
+        if files.is_empty() {
+            return Err("Nothing specified, nothing added.\nMaybe you wanted to say 'git add .'?".into());
+        }
+        
+        let current_dir = std::env::current_dir()?;
+        let options = AddOptions::default();
+        
+        let result = AddCommand::add(&current_dir, files, options)?;
+        
+        if result.has_failures() {
+            for (path, error) in &result.failed_files {
+                println!("⚠️  Failed to add {}: {}", path.display(), error);
+            }
+        }
+        
+        if result.total_staged() > 0 {
+            println!("\n🎯 Successfully staged {} file(s)", result.total_staged());
+        }
+        
+        Ok(())
+    }
+    
+    /// Handle `git status` command
+    pub fn status() -> crate::Result<()> {
+        println!("git-rs status");
+        println!("=============");
+        
+        let current_dir = std::env::current_dir()?;
+        let options = StatusOptions::default();
+        
+        let _result = StatusCommand::status(&current_dir, options)?;
+        
         Ok(())
     }
     
@@ -55,13 +90,6 @@ impl GitCommand {
             None => println!("git-rs clone {}", url),
         }
         println!("⚠️  Clone functionality not implemented yet");
-        Ok(())
-    }
-    
-    /// Handle `git status` command (placeholder)
-    pub fn status() -> crate::Result<()> {
-        println!("git-rs status");
-        println!("⚠️  Status functionality not implemented yet");
         Ok(())
     }
     

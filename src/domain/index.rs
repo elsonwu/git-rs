@@ -60,13 +60,20 @@ impl IndexEntry {
         hash: ObjectHash,
         metadata: &std::fs::Metadata,
     ) -> Self {
-        use std::os::unix::fs::MetadataExt;
-        
         let mode = if metadata.is_file() {
-            if metadata.mode() & 0o111 != 0 {
-                FileMode::Executable
-            } else {
-                FileMode::Regular
+            // Check if file is executable (simplified for cross-platform compatibility)
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::MetadataExt;
+                if metadata.mode() & 0o111 != 0 {
+                    FileMode::Executable
+                } else {
+                    FileMode::Regular
+                }
+            }
+            #[cfg(not(unix))]
+            {
+                FileMode::Regular // Default to regular file on non-Unix systems
             }
         } else if metadata.is_dir() {
             FileMode::Directory
@@ -74,22 +81,44 @@ impl IndexEntry {
             FileMode::Symlink
         };
         
+        let now = Utc::now();
+        
+        // Get timestamps with fallback to current time
+        let ctime = metadata.created()
+            .ok()
+            .and_then(|t| DateTime::from_timestamp(
+                t.duration_since(std::time::UNIX_EPOCH).ok()?.as_secs() as i64, 0))
+            .unwrap_or(now);
+        
+        let mtime = metadata.modified()
+            .ok()
+            .and_then(|t| DateTime::from_timestamp(
+                t.duration_since(std::time::UNIX_EPOCH).ok()?.as_secs() as i64, 0))
+            .unwrap_or(now);
+        
+        // Get Unix-specific metadata if available
+        #[cfg(unix)]
+        let (dev, ino, uid, gid) = {
+            use std::os::unix::fs::MetadataExt;
+            (
+                metadata.dev() as u32,
+                metadata.ino() as u32,
+                metadata.uid(),
+                metadata.gid(),
+            )
+        };
+        
+        #[cfg(not(unix))]
+        let (dev, ino, uid, gid) = (0, 0, 0, 0);
+        
         Self {
-            ctime: metadata.created()
-                .ok()
-                .and_then(|t| DateTime::from_timestamp(
-                    t.duration_since(std::time::UNIX_EPOCH).ok()?.as_secs() as i64, 0))
-                .unwrap_or_else(Utc::now),
-            mtime: metadata.modified()
-                .ok()
-                .and_then(|t| DateTime::from_timestamp(
-                    t.duration_since(std::time::UNIX_EPOCH).ok()?.as_secs() as i64, 0))
-                .unwrap_or_else(Utc::now),
-            dev: metadata.dev() as u32,
-            ino: metadata.ino() as u32,
+            ctime,
+            mtime,
+            dev,
+            ino,
             mode,
-            uid: metadata.uid(),
-            gid: metadata.gid(),
+            uid,
+            gid,
             size: metadata.len(),
             hash,
             stage: 0,

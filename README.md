@@ -336,6 +336,55 @@ Each command implementation includes:
 - **Test cases**: Behavior verification
 - **Comparison with Git**: How our implementation differs/matches
 
+## 📖 Documentation
+
+### 📚 Core Documentation
+
+- **[🏗️ Architecture Guide](docs/ARCHITECTURE.md)** - System design and Git internals deep dive
+- **[⚡ Command Reference](docs/COMMANDS.md)** - Complete reference for all implemented commands
+- **[🔍 Git Internals Explained](docs/GIT_INTERNALS.md)** - Educational exploration of Git concepts
+- **[📊 Project Status](docs/STATUS.md)** - Development roadmap and contribution guidelines
+- **[🦀 API Documentation](https://elsonwu.github.io/git-rs/)** - Generated Rust API docs
+
+### 🎯 Learning Paths
+
+**For Git Beginners:**
+
+1. Start with this README for project overview
+2. Read [Git Internals Explained](docs/GIT_INTERNALS.md) to understand core concepts
+3. Try hands-on examples in [Command Reference](docs/COMMANDS.md)
+4. Explore [Architecture Guide](docs/ARCHITECTURE.md) for implementation details
+
+**For Developers:**
+
+1. Review [Project Status](docs/STATUS.md) for current state and roadmap
+2. Study [Architecture Guide](docs/ARCHITECTURE.md) for system design
+3. Check [API Documentation](https://elsonwu.github.io/git-rs/) for code reference
+4. Follow contribution guidelines below
+
+**For Rust Learners:**
+
+1. Examine [Architecture Guide](docs/ARCHITECTURE.md) for Domain-Driven Design patterns
+2. Browse [API Documentation](https://elsonwu.github.io/git-rs/) for Rust idioms
+3. Look at GitHub Actions workflows in `.github/workflows/` for CI/CD examples
+
+### 🔍 Key Concepts You'll Learn
+
+- **Git Object Model**: How blobs, trees, and commits form a directed acyclic graph
+- **Content Addressing**: SHA-1 hashing and object identification system
+- **Three Trees**: Working directory, index, and HEAD relationships
+- **Reference System**: How branches and tags are pointers to commits
+- **Domain-Driven Design**: Clean architecture with separated concerns in Rust
+- **Testing Strategies**: Unit tests, integration tests, and property-based testing
+
+### 🆘 Getting Help
+
+- **Git concepts questions**: Check [Git Internals Explained](docs/GIT_INTERNALS.md)
+- **Usage questions**: See [Command Reference](docs/COMMANDS.md)
+- **Implementation questions**: Review [Architecture Guide](docs/ARCHITECTURE.md)
+- **Bug reports**: Open an issue on [GitHub](https://github.com/elsonwu/git-rs/issues)
+- **Feature requests**: Check [Project Status](docs/STATUS.md) first, then open an issue
+
 ## 🤝 Contributing
 
 This is primarily an educational project, but contributions are welcome:

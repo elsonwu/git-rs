@@ -6,12 +6,14 @@ on:
     paths:
       - 'src/**'
       - '*.md'
+      - 'docs/**'
       - 'Cargo.toml'
   pull_request:
     branches: [ main ]
     paths:
       - 'src/**'
       - '*.md'
+      - 'docs/**'
       - 'Cargo.toml'
 
 jobs:
@@ -172,14 +174,14 @@ jobs:
           fi
           
           # Check that ARCHITECTURE.md exists and has key sections
-          if ! grep -q "Object Model" ARCHITECTURE.md; then
-            echo "❌ Object Model section missing from ARCHITECTURE.md"
+          if ! grep -q "Object Model" docs/ARCHITECTURE.md; then
+            echo "❌ Object Model section missing from docs/ARCHITECTURE.md"
             exit 1
           fi
           
           # Check that COMMANDS.md has all implemented commands
-          if ! grep -q "git-rs init" COMMANDS.md; then
-            echo "❌ init command not documented in COMMANDS.md"
+          if ! grep -q "git-rs init" docs/COMMANDS.md; then
+            echo "❌ init command not documented in docs/COMMANDS.md"
             exit 1
           fi
           

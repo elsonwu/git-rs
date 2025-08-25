@@ -1,0 +1,95 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Create release builds for multiple platforms
+  build:
+    name: Build Release
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            name: git-rs-linux-x86_64
+          - target: x86_64-apple-darwin
+            os: macOS-latest
+            name: git-rs-macos-x86_64
+          - target: aarch64-apple-darwin
+            os: macOS-latest
+            name: git-rs-macos-arm64
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            name: git-rs-windows-x86_64.exe
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+          
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+          
+      - name: Build release binary
+        run: cargo build --release --target ${{ matrix.target }}
+        
+      - name: Prepare artifact
+        shell: bash
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            cp target/${{ matrix.target }}/release/git-rs.exe ${{ matrix.name }}
+          else
+            cp target/${{ matrix.target }}/release/git-rs ${{ matrix.name }}
+          fi
+          
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.name }}
+          path: ${{ matrix.name }}
+
+  # Create GitHub release
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            git-rs-linux-x86_64/git-rs-linux-x86_64
+            git-rs-macos-x86_64/git-rs-macos-x86_64
+            git-rs-macos-arm64/git-rs-macos-arm64
+            git-rs-windows-x86_64.exe/git-rs-windows-x86_64.exe
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,205 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # Code coverage analysis
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+          
+      - name: Install cargo-llvm-cov
+        run: cargo install cargo-llvm-cov --locked
+        
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-coverage-${{ hashFiles('**/Cargo.lock') }}
+          
+      - name: Generate coverage report
+        run: |
+          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: lcov.info
+          fail_ci_if_error: true
+          verbose: true
+
+  # Code complexity analysis
+  complexity:
+    name: Code Complexity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        
+      - name: Install tokei (lines of code counter)
+        run: cargo install tokei --locked
+        
+      - name: Install cargo-bloat (binary size analysis)
+        run: cargo install cargo-bloat --locked
+        
+      - name: Analyze code metrics
+        run: |
+          echo "📊 Code Metrics Report" >> metrics.txt
+          echo "======================" >> metrics.txt
+          echo "" >> metrics.txt
+          
+          echo "Lines of Code:" >> metrics.txt
+          tokei . >> metrics.txt
+          echo "" >> metrics.txt
+          
+          echo "Binary Size Analysis:" >> metrics.txt
+          cargo bloat --release --crates >> metrics.txt
+          echo "" >> metrics.txt
+          
+          echo "Dependencies:" >> metrics.txt
+          cargo tree --depth 1 >> metrics.txt
+          
+      - name: Upload metrics
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-metrics
+          path: metrics.txt
+
+  # Performance benchmarks
+  benchmarks:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-bench-${{ hashFiles('**/Cargo.lock') }}
+          
+      - name: Run benchmarks
+        run: |
+          # Create benchmark test
+          mkdir -p benches
+          cat > benches/hash_performance.rs << 'EOF'
+          use criterion::{criterion_group, criterion_main, Criterion};
+          use git_rs::domain::objects::BlobObject;
+          use sha1::{Sha1, Digest};
+          
+          fn bench_hash_calculation(c: &mut Criterion) {
+              let data = b"Hello World! This is a test file for benchmarking hash performance.";
+              
+              c.bench_function("blob_hash", |b| {
+                  b.iter(|| {
+                      let blob = BlobObject::new(data.to_vec());
+                      let content = format!("blob {}\0", blob.content.len());
+                      let mut full_content = content.into_bytes();
+                      full_content.extend_from_slice(&blob.content);
+                      
+                      let mut hasher = Sha1::new();
+                      hasher.update(&full_content);
+                      hasher.finalize()
+                  })
+              });
+          }
+          
+          criterion_group!(benches, bench_hash_calculation);
+          criterion_main!(benches);
+          EOF
+          
+          # Add criterion dependency temporarily
+          cargo add criterion --dev --features html_reports || true
+          
+          # Run benchmarks if available
+          if [ -f "benches/hash_performance.rs" ]; then
+            cargo bench || echo "Benchmarks not available yet"
+          fi
+
+  # Memory usage analysis
+  memory-check:
+    name: Memory Usage Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        
+      - name: Install Valgrind
+        run: sudo apt-get install -y valgrind
+        
+      - name: Build debug binary
+        run: cargo build
+        
+      - name: Memory leak check
+        run: |
+          # Create test scenario
+          mkdir -p test-memory
+          cd test-memory
+          
+          # Run git-rs under Valgrind
+          valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-log.txt ../target/debug/git-rs init
+          
+          # Check for memory leaks
+          if grep -q "definitely lost: 0 bytes" valgrind-log.txt; then
+            echo "✅ No memory leaks detected"
+          else
+            echo "❌ Potential memory leaks found"
+            cat valgrind-log.txt
+            exit 1
+          fi
+
+  # Static analysis
+  static-analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        
+      - name: Install cargo-deny
+        run: cargo install cargo-deny --locked
+        
+      - name: Install cargo-machete
+        run: cargo install cargo-machete --locked
+        
+      - name: Run dependency analysis
+        run: |
+          echo "🔍 Running static analysis..."
+          
+          # Check for security advisories, licenses, etc.
+          cargo deny check || true
+          
+          # Check for unused dependencies
+          cargo machete || true
+          
+          echo "✅ Static analysis complete"

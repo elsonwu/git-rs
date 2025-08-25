@@ -86,7 +86,6 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./target/doc
-          cname: git-rs-docs.elsonwu.com  # Optional: custom domain
 
   # Lint markdown files
   markdown-lint:
@@ -102,12 +101,6 @@ jobs:
             **/*.md
             !target/**
             !node_modules/**
-          config: |
-            {
-              "MD013": false,
-              "MD033": false,
-              "MD041": false
-            }
 
   # Check for broken links
   link-check:

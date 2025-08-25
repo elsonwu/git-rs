@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use crate::domain::objects::ObjectHash;
+use serde::{Deserialize, Serialize};
 
 /// Reference types in Git
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -22,9 +22,13 @@ pub struct GitRef {
 
 impl GitRef {
     pub fn new(name: String, hash: ObjectHash, ref_type: RefType) -> Self {
-        Self { name, hash, ref_type }
+        Self {
+            name,
+            hash,
+            ref_type,
+        }
     }
-    
+
     /// Get the full reference path (e.g., "refs/heads/main")
     pub fn full_name(&self) -> String {
         match self.ref_type {
@@ -33,12 +37,12 @@ impl GitRef {
             RefType::RemoteBranch => format!("refs/remotes/{}", self.name),
         }
     }
-    
+
     /// Create a branch reference
     pub fn branch(name: String, hash: ObjectHash) -> Self {
         Self::new(name, hash, RefType::Branch)
     }
-    
+
     /// Create a tag reference
     pub fn tag(name: String, hash: ObjectHash) -> Self {
         Self::new(name, hash, RefType::Tag)
@@ -59,27 +63,25 @@ impl HeadRef {
     pub fn symbolic(branch_name: &str) -> Self {
         Self::Symbolic(format!("refs/heads/{}", branch_name))
     }
-    
+
     /// Create a direct HEAD reference to a commit
     pub fn direct(hash: ObjectHash) -> Self {
         Self::Direct(hash)
     }
-    
+
     /// Check if HEAD is detached (pointing directly to a commit)
     pub fn is_detached(&self) -> bool {
         matches!(self, HeadRef::Direct(_))
     }
-    
+
     /// Get the branch name if HEAD is symbolic
     pub fn branch_name(&self) -> Option<&str> {
         match self {
-            HeadRef::Symbolic(ref_name) => {
-                ref_name.strip_prefix("refs/heads/")
-            }
+            HeadRef::Symbolic(ref_name) => ref_name.strip_prefix("refs/heads/"),
             HeadRef::Direct(_) => None,
         }
     }
-    
+
     /// Get the commit hash this HEAD points to
     /// Note: For symbolic references, you need to resolve the branch first
     pub fn direct_hash(&self) -> Option<&ObjectHash> {
@@ -113,56 +115,57 @@ impl ReferenceManager {
             head: None,
         }
     }
-    
+
     /// Add a new reference
     pub fn add_ref(&mut self, git_ref: GitRef) {
         // Remove existing reference with the same full name
         self.refs.retain(|r| r.full_name() != git_ref.full_name());
         self.refs.push(git_ref);
     }
-    
+
     /// Find a reference by name
     pub fn find_ref(&self, name: &str) -> Option<&GitRef> {
-        self.refs.iter().find(|r| r.name == name || r.full_name() == name)
+        self.refs
+            .iter()
+            .find(|r| r.name == name || r.full_name() == name)
     }
-    
+
     /// Get all branch references
     pub fn branches(&self) -> Vec<&GitRef> {
-        self.refs.iter()
+        self.refs
+            .iter()
             .filter(|r| r.ref_type == RefType::Branch)
             .collect()
     }
-    
+
     /// Get all tag references
     pub fn tags(&self) -> Vec<&GitRef> {
-        self.refs.iter()
+        self.refs
+            .iter()
             .filter(|r| r.ref_type == RefType::Tag)
             .collect()
     }
-    
+
     /// Set HEAD to point to a branch
     pub fn set_head_to_branch(&mut self, branch_name: &str) {
         self.head = Some(HeadRef::symbolic(branch_name));
     }
-    
+
     /// Set HEAD to point directly to a commit (detached HEAD)
     pub fn set_head_to_commit(&mut self, hash: ObjectHash) {
         self.head = Some(HeadRef::direct(hash));
     }
-    
+
     /// Get the current HEAD reference
     pub fn get_head(&self) -> Option<&HeadRef> {
         self.head.as_ref()
     }
-    
+
     /// Resolve HEAD to get the actual commit hash
     pub fn resolve_head(&self) -> Option<ObjectHash> {
         match &self.head {
             Some(HeadRef::Direct(hash)) => Some(hash.clone()),
-            Some(HeadRef::Symbolic(ref_name)) => {
-                self.find_ref(ref_name)
-                    .map(|r| r.hash.clone())
-            }
+            Some(HeadRef::Symbolic(ref_name)) => self.find_ref(ref_name).map(|r| r.hash.clone()),
             None => None,
         }
     }

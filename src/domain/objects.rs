@@ -10,17 +10,17 @@ impl ObjectHash {
     pub fn new(hash: String) -> Self {
         Self(hash)
     }
-    
+
     /// Get the hash as a string
     pub fn as_str(&self) -> &str {
         &self.0
     }
-    
+
     /// Get the first 2 characters for directory name
     pub fn dir_name(&self) -> &str {
         &self.0[0..2]
     }
-    
+
     /// Get the remaining characters for file name
     pub fn file_name(&self) -> &str {
         &self.0[2..]
@@ -61,17 +61,17 @@ impl BlobObject {
     pub fn new(content: Vec<u8>) -> Self {
         Self { content }
     }
-    
+
     pub fn from_string(content: String) -> Self {
         Self {
             content: content.into_bytes(),
         }
     }
-    
+
     pub fn content_as_string(&self) -> Result<String, std::string::FromUtf8Error> {
         String::from_utf8(self.content.clone())
     }
-    
+
     pub fn size(&self) -> usize {
         self.content.len()
     }
@@ -100,7 +100,7 @@ impl FileMode {
             _ => None,
         }
     }
-    
+
     pub fn as_u32(self) -> u32 {
         self as u32
     }
@@ -132,13 +132,13 @@ impl TreeObject {
             entries: Vec::new(),
         }
     }
-    
+
     pub fn add_entry(&mut self, entry: TreeEntry) {
         self.entries.push(entry);
         // Keep entries sorted by name
         self.entries.sort_by(|a, b| a.name.cmp(&b.name));
     }
-    
+
     pub fn find_entry(&self, name: &str) -> Option<&TreeEntry> {
         self.entries.iter().find(|entry| entry.name == name)
     }
@@ -206,7 +206,7 @@ impl CommitObject {
             message,
         }
     }
-    
+
     pub fn is_root_commit(&self) -> bool {
         self.parents.is_empty()
     }
@@ -228,21 +228,21 @@ impl GitObject {
             GitObject::Commit(_) => GitObjectType::Commit,
         }
     }
-    
+
     pub fn as_blob(&self) -> Option<&BlobObject> {
         match self {
             GitObject::Blob(blob) => Some(blob),
             _ => None,
         }
     }
-    
+
     pub fn as_tree(&self) -> Option<&TreeObject> {
         match self {
             GitObject::Tree(tree) => Some(tree),
             _ => None,
         }
     }
-    
+
     pub fn as_commit(&self) -> Option<&CommitObject> {
         match self {
             GitObject::Commit(commit) => Some(commit),

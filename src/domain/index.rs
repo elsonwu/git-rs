@@ -1,8 +1,8 @@
-use std::path::PathBuf;
-use std::collections::HashMap;
+use crate::domain::objects::{FileMode, ObjectHash};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use crate::domain::objects::{ObjectHash, FileMode};
+use std::collections::HashMap;
+use std::path::PathBuf;
 
 /// Index entry representing a staged file
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -32,12 +32,7 @@ pub struct IndexEntry {
 }
 
 impl IndexEntry {
-    pub fn new(
-        path: PathBuf,
-        hash: ObjectHash,
-        size: u64,
-        mode: FileMode,
-    ) -> Self {
+    pub fn new(path: PathBuf, hash: ObjectHash, size: u64, mode: FileMode) -> Self {
         let now = Utc::now();
         Self {
             ctime: now,
@@ -53,7 +48,7 @@ impl IndexEntry {
             path,
         }
     }
-    
+
     /// Create an index entry from file metadata
     pub fn from_file_metadata(
         path: PathBuf,
@@ -80,22 +75,32 @@ impl IndexEntry {
         } else {
             FileMode::Symlink
         };
-        
+
         let now = Utc::now();
-        
+
         // Get timestamps with fallback to current time
-        let ctime = metadata.created()
+        let ctime = metadata
+            .created()
             .ok()
-            .and_then(|t| DateTime::from_timestamp(
-                t.duration_since(std::time::UNIX_EPOCH).ok()?.as_secs() as i64, 0))
+            .and_then(|t| {
+                DateTime::from_timestamp(
+                    t.duration_since(std::time::UNIX_EPOCH).ok()?.as_secs() as i64,
+                    0,
+                )
+            })
             .unwrap_or(now);
-        
-        let mtime = metadata.modified()
+
+        let mtime = metadata
+            .modified()
             .ok()
-            .and_then(|t| DateTime::from_timestamp(
-                t.duration_since(std::time::UNIX_EPOCH).ok()?.as_secs() as i64, 0))
+            .and_then(|t| {
+                DateTime::from_timestamp(
+                    t.duration_since(std::time::UNIX_EPOCH).ok()?.as_secs() as i64,
+                    0,
+                )
+            })
             .unwrap_or(now);
-        
+
         // Get Unix-specific metadata if available
         #[cfg(unix)]
         let (dev, ino, uid, gid) = {
@@ -107,10 +112,10 @@ impl IndexEntry {
                 metadata.gid(),
             )
         };
-        
+
         #[cfg(not(unix))]
         let (dev, ino, uid, gid) = (0, 0, 0, 0);
-        
+
         Self {
             ctime,
             mtime,
@@ -125,17 +130,17 @@ impl IndexEntry {
             path,
         }
     }
-    
+
     /// Get the file name
     pub fn name(&self) -> Option<&str> {
         self.path.file_name().and_then(|n| n.to_str())
     }
-    
+
     /// Check if this entry represents a regular file
     pub fn is_file(&self) -> bool {
         matches!(self.mode, FileMode::Regular | FileMode::Executable)
     }
-    
+
     /// Check if this entry represents a directory
     pub fn is_dir(&self) -> bool {
         matches!(self.mode, FileMode::Directory)
@@ -158,54 +163,54 @@ impl GitIndex {
             entries: HashMap::new(),
         }
     }
-    
+
     /// Add a file to the index
     pub fn add_entry(&mut self, entry: IndexEntry) {
         self.entries.insert(entry.path.clone(), entry);
     }
-    
+
     /// Remove a file from the index
     pub fn remove_entry(&mut self, path: &PathBuf) -> Option<IndexEntry> {
         self.entries.remove(path)
     }
-    
+
     /// Get an entry by path
     pub fn get_entry(&self, path: &PathBuf) -> Option<&IndexEntry> {
         self.entries.get(path)
     }
-    
+
     /// Get all entries sorted by path
     pub fn get_sorted_entries(&self) -> Vec<&IndexEntry> {
         let mut entries: Vec<&IndexEntry> = self.entries.values().collect();
         entries.sort_by(|a, b| a.path.cmp(&b.path));
         entries
     }
-    
+
     /// Check if the index is empty
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }
-    
+
     /// Get the number of entries
     pub fn len(&self) -> usize {
         self.entries.len()
     }
-    
+
     /// Clear all entries
     pub fn clear(&mut self) {
         self.entries.clear();
     }
-    
+
     /// Check if a file is staged
     pub fn is_staged(&self, path: &PathBuf) -> bool {
         self.entries.contains_key(path)
     }
-    
+
     /// Get all staged file paths
     pub fn staged_paths(&self) -> Vec<&PathBuf> {
         self.entries.keys().collect()
     }
-    
+
     /// Update an existing entry or add a new one
     pub fn update_entry(&mut self, entry: IndexEntry) {
         self.entries.insert(entry.path.clone(), entry);

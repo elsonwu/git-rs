@@ -1,9 +1,9 @@
-pub mod repository;
+pub mod index;
 pub mod objects;
 pub mod references;
-pub mod index;
+pub mod repository;
 
-pub use repository::*;
+pub use index::*;
 pub use objects::*;
 pub use references::*;
-pub use index::*;
+pub use repository::*;

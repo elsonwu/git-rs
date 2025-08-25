@@ -50,7 +50,7 @@ enum Commands {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
-    
+
     match cli.command {
         Commands::Init => GitCommand::init()?,
         Commands::Add { files } => GitCommand::add(&files)?,
@@ -60,6 +60,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::Status => GitCommand::status()?,
         Commands::Log { count } => GitCommand::log(count)?,
     }
-    
+
     Ok(())
 }

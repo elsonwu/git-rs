@@ -1,11 +1,32 @@
 use crate::domain::{index::*, objects::*, references::*};
 use std::path::{Path, PathBuf};
 
+/// Git compatibility mode
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum GitCompatMode {
+    /// Educational mode using .git-rs directory (safe for learning)
+    Educational,
+    /// Compatible mode using .git directory (standard Git)
+    Compatible,
+}
+
 /// Repository configuration
 #[derive(Debug, Clone)]
 pub struct RepositoryConfig {
     pub user_name: String,
     pub user_email: String,
+    /// Git compatibility mode: if true, use .git and index, if false use .git-rs and git-rs-index
+    pub git_compat: GitCompatMode,
+}
+
+impl RepositoryConfig {
+    pub fn new(git_compat: GitCompatMode) -> Self {
+        Self {
+            user_name: "Git User".to_string(),
+            user_email: "user@example.com".to_string(),
+            git_compat,
+        }
+    }
 }
 
 impl Default for RepositoryConfig {
@@ -13,6 +34,7 @@ impl Default for RepositoryConfig {
         Self {
             user_name: "Git User".to_string(),
             user_email: "user@example.com".to_string(),
+            git_compat: GitCompatMode::Educational, // Default to safe .git-rs mode
         }
     }
 }
@@ -61,6 +83,27 @@ impl GitRepository {
         }
     }
 
+    /// Create a new repository instance with git compatibility mode
+    ///
+    /// # Arguments
+    /// * `root_path` - Path to the repository root directory
+    /// * `git_compat` - The git compatibility mode
+    pub fn new_with_compat<P: AsRef<Path>>(root_path: P, git_compat: GitCompatMode) -> Self {
+        let root_path = root_path.as_ref().to_path_buf();
+        let git_dir = root_path.join(match git_compat {
+            GitCompatMode::Educational => ".git-rs",
+            GitCompatMode::Compatible => ".git",
+        });
+
+        Self {
+            root_path,
+            git_dir,
+            config: RepositoryConfig::new(git_compat),
+            refs: ReferenceManager::new(),
+            index: GitIndex::new(),
+        }
+    }
+
     /// Check if this directory contains a Git repository
     pub fn is_repository(&self) -> bool {
         self.git_dir.exists() && self.git_dir.is_dir()
@@ -98,7 +141,11 @@ impl GitRepository {
 
     /// Get the index file path (using git-rs-index to avoid conflicts with Git's index)
     pub fn index_path(&self) -> PathBuf {
-        self.git_dir.join("git-rs-index")
+        let index_name = match self.config.git_compat {
+            GitCompatMode::Educational => "git-rs-index",
+            GitCompatMode::Compatible => "index",
+        };
+        self.git_dir.join(index_name)
     }
 
     /// Get the HEAD file path

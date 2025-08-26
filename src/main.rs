@@ -1,11 +1,20 @@
 use clap::{Parser, Subcommand};
 use git_rs::cli::GitCommand;
+use git_rs::domain::repository::GitCompatMode;
 
 #[derive(Parser)]
 #[command(name = "git-rs")]
 #[command(about = "A minimal Git implementation in Rust for educational purposes")]
 #[command(version = "0.1.0")]
 struct Cli {
+    /// Use .git directory instead of .git-rs (enables real Git compatibility mode)
+    #[arg(
+        long,
+        global = true,
+        help = "Use .git directory for Git compatibility (default: .git-rs)"
+    )]
+    git_compat: bool,
+
     #[command(subcommand)]
     command: Commands,
 }
@@ -51,14 +60,23 @@ enum Commands {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
+    // Convert the boolean flag to GitCompatMode
+    let git_compat = if cli.git_compat {
+        GitCompatMode::Compatible
+    } else {
+        GitCompatMode::Educational
+    };
+
     match cli.command {
-        Commands::Init => GitCommand::init()?,
-        Commands::Add { files } => GitCommand::add(&files)?,
-        Commands::Commit { message } => GitCommand::commit(&message)?,
-        Commands::Diff { cached } => GitCommand::diff(cached)?,
-        Commands::Clone { url, directory } => GitCommand::clone(&url, directory.as_deref())?,
-        Commands::Status => GitCommand::status()?,
-        Commands::Log { count } => GitCommand::log(count)?,
+        Commands::Init => GitCommand::init_with_compat(git_compat)?,
+        Commands::Add { files } => GitCommand::add_with_compat(&files, git_compat)?,
+        Commands::Commit { message } => GitCommand::commit_with_compat(&message, git_compat)?,
+        Commands::Diff { cached } => GitCommand::diff_with_compat(cached, git_compat)?,
+        Commands::Clone { url, directory } => {
+            GitCommand::clone_with_compat(&url, directory.as_deref(), git_compat)?
+        }
+        Commands::Status => GitCommand::status_with_compat(git_compat)?,
+        Commands::Log { count } => GitCommand::log_with_compat(count, git_compat)?,
     }
 
     Ok(())

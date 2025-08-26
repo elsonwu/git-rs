@@ -4,6 +4,7 @@ use crate::application::commit::{CommitCommand, CommitOptions};
 use crate::application::diff::{DiffCommand, DiffOptions};
 use crate::application::init::InitCommand;
 use crate::application::status::{StatusCommand, StatusOptions};
+use crate::domain::repository::GitCompatMode;
 use std::path::Path;
 
 /// CLI Command Handler
@@ -149,5 +150,67 @@ impl GitCommand {
         }
         println!("⚠️  Log functionality not implemented yet");
         Ok(())
+    }
+
+    // Git compatibility methods
+
+    /// Handle `git init` command with compatibility mode
+    pub fn init_with_compat(git_compat: GitCompatMode) -> crate::Result<()> {
+        println!("git-rs init");
+        println!("============");
+
+        let repo = InitCommand::init_with_compat::<&Path>(None, git_compat)?;
+        let info = InitCommand::get_repository_info(&repo);
+
+        println!("\n📊 Repository Summary:");
+        println!("{}", info);
+
+        Ok(())
+    }
+
+    /// Handle `git add` command with compatibility mode
+    pub fn add_with_compat(files: &[String], _git_compat: GitCompatMode) -> crate::Result<()> {
+        // For now, just delegate to the original add method
+        // TODO: Pass git_compat to AddCommand when it supports it
+        Self::add(files)
+    }
+
+    /// Handle `git commit` command with compatibility mode
+    pub fn commit_with_compat(message: &str, _git_compat: GitCompatMode) -> crate::Result<()> {
+        // For now, just delegate to the original commit method
+        // TODO: Pass git_compat to CommitCommand when it supports it
+        Self::commit(message)
+    }
+
+    /// Handle `git status` command with compatibility mode
+    pub fn status_with_compat(_git_compat: GitCompatMode) -> crate::Result<()> {
+        // For now, just delegate to the original status method
+        // TODO: Pass git_compat to StatusCommand when it supports it
+        Self::status()
+    }
+
+    /// Handle `git diff` command with compatibility mode
+    pub fn diff_with_compat(staged: bool, _git_compat: GitCompatMode) -> crate::Result<()> {
+        // For now, just delegate to the original diff method
+        // TODO: Pass git_compat to DiffCommand when it supports it
+        Self::diff(staged)
+    }
+
+    /// Handle `git clone` command with compatibility mode
+    pub fn clone_with_compat(
+        url: &str,
+        directory: Option<&str>,
+        _git_compat: GitCompatMode,
+    ) -> crate::Result<()> {
+        // For now, just delegate to the original clone method
+        // TODO: Pass git_compat to CloneCommand when it supports it
+        Self::clone(url, directory)
+    }
+
+    /// Handle `git log` command with compatibility mode
+    pub fn log_with_compat(count: Option<usize>, _git_compat: GitCompatMode) -> crate::Result<()> {
+        // For now, just delegate to the original log method
+        // TODO: Pass git_compat to LogCommand when it supports it
+        Self::log(count)
     }
 }

@@ -314,15 +314,71 @@ cat .git-rs/refs/heads/main  # abcdef1234567890... (new commit)
 
 ---
 
+## � `git-rs diff`
+
+Show changes between different states in unified diff format.
+
+### Syntax
+
+```bash
+git-rs diff [--cached]
+```
+
+### What It Does
+
+Displays line-by-line differences between:
+- **Default**: Working directory vs staging area
+- **--cached**: Staging area vs last commit
+
+### Educational Insights
+
+- **Unified Diff Format**: Standard format used by patch tools
+- **Content Comparison**: How Git compares file contents
+- **Binary Detection**: Different handling for binary files
+- **Change Visualization**: Understanding what lines changed
+
+### Options
+
+- `--cached`: Show differences between staging area and last commit
+- Default (no flag): Show differences between working directory and staging area
+
+### Output Format
+
+```diff
+diff --git a/file.txt b/file.txt
+index 1234567..abcdefg 100644
+--- a/file.txt
++++ b/file.txt
+@@ -1,3 +1,3 @@
+ line 1
+-old line 2
++new line 2
+ line 3
+```
+
+### Examples
+
+```bash
+# Show unstaged changes
+git-rs diff
+
+# Show staged changes
+git-rs diff --cached
+
+# After modifying a file
+echo "new content" >> file.txt
+git-rs diff  # Shows the addition
+```
+
+### Educational Value
+
+- **Understanding Diffs**: How version control systems represent changes
+- **Patch Format**: Standard format for sharing changes
+- **Change Detection**: Algorithms for comparing file content
+
+---
+
 ## 🚧 Future Commands (In Development)
-
-### `git-rs diff`
-
-Show changes between different states.
-
-- **Content Comparison**: Line-by-line differences
-- **Unified Format**: Standard diff output format
-- **Multiple Modes**: Working vs staged, staged vs committed
 
 ### `git-rs clone`
 

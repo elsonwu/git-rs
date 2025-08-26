@@ -248,13 +248,49 @@ committer John Doe <john@example.com> 1692000000 +0000
 Initial implementation
 ```
 
+### ✅ `git-rs diff` - Content Comparison
+
+**What it does:**
+
+- Generates unified diff format output showing line-by-line changes
+- Compares working directory vs staging area (default)
+- Compares staging area vs last commit (with `--cached`)
+- Detects binary files and handles them appropriately
+- Shows file headers and line context for all changes
+
+**Educational Insights:**
+
+- How diff algorithms work to compare file contents
+- Understanding unified diff format used by patch tools
+- The difference between staged and unstaged changes
+- Binary file detection and handling strategies
+
+**Example:**
+
+```bash
+# Show unstaged changes
+git-rs diff
+
+# Show staged changes  
+git-rs diff --cached
+```
+
+**Output Format:**
+
+```diff
+diff --git a/README.md b/README.md
+index 1234567..abcdefg 100644
+--- a/README.md
++++ b/README.md
+@@ -1,3 +1,4 @@
+ # Git-RS
+ 
+-Old line
++New line
++Added line
+```
+
 ## 🚧 Commands in Development
-
-### 🔄 `git-rs diff` - Content Comparison
-
-- Unified diff format generation
-- Working directory vs staging area comparison
-- Staged vs committed comparison
 
 ### 🔄 `git-rs clone` - Repository Cloning
 

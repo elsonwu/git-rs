@@ -1,5 +1,6 @@
 use crate::application::add::{AddCommand, AddOptions};
 use crate::application::commit::{CommitCommand, CommitOptions};
+use crate::application::diff::{DiffCommand, DiffOptions};
 use crate::application::init::InitCommand;
 use crate::application::status::{StatusCommand, StatusOptions};
 use std::path::Path;
@@ -92,14 +93,33 @@ impl GitCommand {
         Ok(())
     }
 
-    /// Handle `git diff` command (placeholder)
+    /// Handle `git diff` command
     pub fn diff(cached: bool) -> crate::Result<()> {
         if cached {
             println!("git-rs diff --cached");
         } else {
             println!("git-rs diff");
         }
-        println!("⚠️  Diff functionality not implemented yet");
+        println!("=================");
+
+        let current_dir = std::env::current_dir()?;
+        let options = DiffOptions {
+            cached,
+            ..Default::default()
+        };
+
+        let result = DiffCommand::diff(&current_dir, options)?;
+
+        if result.files_changed == 0 {
+            if cached {
+                println!("No changes between index and HEAD");
+            } else {
+                println!("No changes between working directory and index");
+            }
+        } else {
+            result.print_unified();
+        }
+
         Ok(())
     }
 

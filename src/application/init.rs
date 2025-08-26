@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use crate::domain::repository::GitCompatMode;
 use crate::domain::*;
 use crate::infrastructure::*;
 
@@ -41,6 +42,22 @@ impl InitCommand {
     /// * `Ok(GitRepository)` - The initialized repository
     /// * `Err(...)` - If initialization failed
     pub fn init<P: AsRef<Path>>(path: Option<P>) -> crate::Result<GitRepository> {
+        Self::init_with_compat(path, GitCompatMode::Educational)
+    }
+
+    /// Initialize a new Git repository with compatibility mode
+    ///
+    /// # Arguments
+    /// * `path` - Directory path where to initialize the repository (default: current directory)
+    /// * `git_compat` - Git compatibility mode (Educational uses .git-rs, Compatible uses .git)
+    ///
+    /// # Returns
+    /// * `Ok(GitRepository)` - The initialized repository
+    /// * `Err(...)` - If initialization failed
+    pub fn init_with_compat<P: AsRef<Path>>(
+        path: Option<P>,
+        git_compat: GitCompatMode,
+    ) -> crate::Result<GitRepository> {
         let repo_path = match path {
             Some(p) => p.as_ref().to_path_buf(),
             None => std::env::current_dir()?,
@@ -48,8 +65,8 @@ impl InitCommand {
 
         println!("🚀 Initializing Git repository in {:?}", repo_path);
 
-        // Create repository instance
-        let repo = GitRepository::new(&repo_path);
+        // Create repository instance with compatibility mode
+        let repo = GitRepository::new_with_compat(&repo_path, git_compat);
 
         // Check if already a git repository
         if repo.is_repository() {
@@ -57,7 +74,7 @@ impl InitCommand {
         }
 
         // Create .git directory structure
-        Self::create_git_directory_structure(&repo)?;
+        Self::create_git_directory_structure(&repo, git_compat)?;
 
         // Initialize object store
         Self::initialize_object_store(&repo)?;
@@ -66,10 +83,10 @@ impl InitCommand {
         Self::initialize_reference_store(&repo)?;
 
         // Create initial configuration
-        Self::create_initial_config(&repo)?;
+        Self::create_initial_config(&repo, git_compat)?;
 
         // Create repository description
-        Self::create_description(&repo)?;
+        Self::create_description(&repo, git_compat)?;
 
         println!(
             "✅ Initialized empty Git repository in {:?}",
@@ -80,8 +97,15 @@ impl InitCommand {
     }
 
     /// Create the basic .git directory structure
-    fn create_git_directory_structure(repo: &GitRepository) -> crate::Result<()> {
-        println!("📁 Creating .git-rs directory structure...");
+    fn create_git_directory_structure(
+        repo: &GitRepository,
+        git_compat: GitCompatMode,
+    ) -> crate::Result<()> {
+        let git_dir_name = match git_compat {
+            GitCompatMode::Educational => ".git-rs",
+            GitCompatMode::Compatible => ".git",
+        };
+        println!("📁 Creating {} directory structure...", git_dir_name);
 
         // Create main .git directory
         fs::create_dir_all(repo.git_dir())?;
@@ -96,9 +120,12 @@ impl InitCommand {
         fs::create_dir_all(repo.heads_dir())?;
         fs::create_dir_all(repo.tags_dir())?;
 
-        println!("   ✓ Created .git-rs/objects/ (object database)");
-        println!("   ✓ Created .git-rs/refs/heads/ (branch references)");
-        println!("   ✓ Created .git-rs/refs/tags/ (tag references)");
+        println!("   ✓ Created {}/objects/ (object database)", git_dir_name);
+        println!(
+            "   ✓ Created {}/refs/heads/ (branch references)",
+            git_dir_name
+        );
+        println!("   ✓ Created {}/refs/tags/ (tag references)", git_dir_name);
 
         Ok(())
     }
@@ -132,7 +159,7 @@ impl InitCommand {
     }
 
     /// Create initial repository configuration
-    fn create_initial_config(repo: &GitRepository) -> crate::Result<()> {
+    fn create_initial_config(repo: &GitRepository, git_compat: GitCompatMode) -> crate::Result<()> {
         println!("⚙️  Creating initial configuration...");
 
         let config_content = r#"[core]
@@ -147,20 +174,28 @@ impl InitCommand {
 
         fs::write(repo.config_path(), config_content)?;
 
-        println!("   ✓ Created .git-rs/config with default settings");
+        let git_dir_name = match git_compat {
+            GitCompatMode::Educational => ".git-rs",
+            GitCompatMode::Compatible => ".git",
+        };
+        println!("   ✓ Created {}/config with default settings", git_dir_name);
 
         Ok(())
     }
 
     /// Create repository description
-    fn create_description(repo: &GitRepository) -> crate::Result<()> {
+    fn create_description(repo: &GitRepository, git_compat: GitCompatMode) -> crate::Result<()> {
         let description_path = repo.git_dir().join("description");
         let description_content =
             "Unnamed repository; edit this file 'description' to name the repository.\n";
 
         fs::write(description_path, description_content)?;
 
-        println!("   ✓ Created .git-rs/description");
+        let git_dir_name = match git_compat {
+            GitCompatMode::Educational => ".git-rs",
+            GitCompatMode::Compatible => ".git",
+        };
+        println!("   ✓ Created {}/description", git_dir_name);
 
         Ok(())
     }

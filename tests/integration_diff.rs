@@ -9,7 +9,6 @@ use git_rs::domain::*;
 ///
 /// These tests create real temporary repositories and test the full diff workflow
 /// end-to-end, similar to how a user would interact with the CLI.
-
 fn setup_test_repository() -> (TempDir, GitRepository) {
     let temp_dir = TempDir::new().expect("Failed to create temporary directory");
     let repo_path = temp_dir.path();

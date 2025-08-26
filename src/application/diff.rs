@@ -404,7 +404,7 @@ impl DiffCommand {
             let path = entry.path();
 
             // Skip git-rs directory
-            if path.file_name().map_or(false, |name| name == ".git-rs") {
+            if path.file_name().is_some_and(|name| name == ".git-rs") {
                 continue;
             }
 
@@ -811,7 +811,7 @@ mod tests {
         let (_temp_dir, repo_path) = setup_test_repo();
 
         // Create a binary file (contains null bytes)
-        fs::write(repo_path.join("binary.dat"), &[0, 1, 2, 3, 0, 5]).unwrap();
+        fs::write(repo_path.join("binary.dat"), [0, 1, 2, 3, 0, 5]).unwrap();
 
         let result = DiffCommand::diff(&repo_path, DiffOptions::default()).unwrap();
 

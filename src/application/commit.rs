@@ -140,7 +140,7 @@ impl CommitCommand {
 
         for (path, entry) in &index.entries {
             let tree_entry = TreeEntry {
-                mode: entry.mode.clone(),
+                mode: entry.mode,
                 name: path.to_string_lossy().to_string(),
                 hash: entry.hash.clone(),
             };

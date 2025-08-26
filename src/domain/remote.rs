@@ -89,7 +89,8 @@ impl RemoteRepository {
     /// Get the HEAD reference hash
     pub fn head_hash(&self) -> Option<&String> {
         // Try different common HEAD reference names
-        self.refs.get("HEAD")
+        self.refs
+            .get("HEAD")
             .or_else(|| self.refs.get("refs/heads/main"))
             .or_else(|| self.refs.get("refs/heads/master"))
     }
@@ -102,7 +103,8 @@ impl RemoteRepository {
             Some("master".to_string())
         } else {
             // Find first branch
-            self.refs.keys()
+            self.refs
+                .keys()
                 .find(|name| name.starts_with("refs/heads/"))
                 .map(|name| name.strip_prefix("refs/heads/").unwrap().to_string())
         }
@@ -131,7 +133,7 @@ mod tests {
     fn test_remote_repository_creation() {
         let url = Url::parse("https://github.com/user/repo.git").unwrap();
         let remote = RemoteRepository::new(url.clone(), "origin".to_string());
-        
+
         assert_eq!(remote.url, url);
         assert_eq!(remote.name, "origin");
         assert!(remote.refs.is_empty());
@@ -141,28 +143,31 @@ mod tests {
     fn test_remote_ref_management() {
         let url = Url::parse("https://github.com/user/repo.git").unwrap();
         let mut remote = RemoteRepository::new(url, "origin".to_string());
-        
+
         remote.add_ref("refs/heads/main".to_string(), "abc123".to_string());
         remote.add_ref("refs/heads/dev".to_string(), "def456".to_string());
-        
+
         assert_eq!(remote.refs.len(), 2);
-        assert_eq!(remote.refs.get("refs/heads/main"), Some(&"abc123".to_string()));
+        assert_eq!(
+            remote.refs.get("refs/heads/main"),
+            Some(&"abc123".to_string())
+        );
     }
 
     #[test]
     fn test_default_branch_detection() {
         let url = Url::parse("https://github.com/user/repo.git").unwrap();
         let mut remote = RemoteRepository::new(url, "origin".to_string());
-        
+
         // Test main branch
         remote.add_ref("refs/heads/main".to_string(), "abc123".to_string());
         assert_eq!(remote.default_branch(), Some("main".to_string()));
-        
+
         // Test fallback to master
         remote.refs.clear();
         remote.add_ref("refs/heads/master".to_string(), "def456".to_string());
         assert_eq!(remote.default_branch(), Some("master".to_string()));
-        
+
         // Test first branch fallback
         remote.refs.clear();
         remote.add_ref("refs/heads/develop".to_string(), "ghi789".to_string());

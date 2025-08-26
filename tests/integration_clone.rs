@@ -8,7 +8,6 @@ use url::Url;
 ///
 /// These tests verify that the clone command works correctly for both
 /// local and remote repositories, following Git's clone behavior.
-
 #[cfg(test)]
 mod clone_tests {
     use super::*;

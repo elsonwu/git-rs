@@ -22,7 +22,7 @@ impl RemoteClient {
     /// Discover references from a remote repository
     ///
     /// This implements the Git smart HTTP protocol for reference discovery.
-    /// See: https://git-scm.com/docs/http-protocol
+    /// See: <https://git-scm.com/docs/http-protocol>
     pub fn discover_refs(&self, url: &Url) -> Result<RemoteRepository> {
         let info_refs_url = format!("{}info/refs?service=git-upload-pack", url);
 

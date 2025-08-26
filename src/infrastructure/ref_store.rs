@@ -278,6 +278,53 @@ impl RefStore {
 
         Ok(())
     }
+
+    /// Get the current HEAD commit hash (resolving symbolic references)
+    pub fn get_head(&self) -> crate::Result<Option<ObjectHash>> {
+        let head = self.load_head()?;
+        match head {
+            Some(HeadRef::Direct(hash)) => Ok(Some(hash)),
+            Some(HeadRef::Symbolic(ref_name)) => {
+                // Extract branch name and load its hash
+                if let Some(branch_name) = ref_name.strip_prefix("refs/heads/") {
+                    if let Some(branch_ref) = self.load_ref(branch_name, RefType::Branch)? {
+                        Ok(Some(branch_ref.hash))
+                    } else {
+                        Ok(None)
+                    }
+                } else {
+                    Ok(None)
+                }
+            }
+            None => Ok(None),
+        }
+    }
+
+    /// Get the current branch name (if HEAD is symbolic)
+    pub fn get_current_branch(&self) -> crate::Result<Option<String>> {
+        let head = self.load_head()?;
+        match head {
+            Some(HeadRef::Symbolic(ref_name)) => {
+                Ok(ref_name.strip_prefix("refs/heads/").map(|s| s.to_string()))
+            }
+            _ => Ok(None),
+        }
+    }
+
+    /// Store a single reference (convenience method)
+    pub fn store_ref(&self, git_ref: &GitRef) -> crate::Result<()> {
+        self.save_ref(git_ref)?;
+
+        // If this is the current branch, update HEAD to point to it
+        if let Some(current_branch) = self.get_current_branch()? {
+            if current_branch == git_ref.name && git_ref.ref_type == RefType::Branch {
+                let head = HeadRef::symbolic(&format!("refs/heads/{}", git_ref.name));
+                self.save_head(&head)?;
+            }
+        }
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]

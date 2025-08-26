@@ -45,5 +45,8 @@ jobs:
       - name: Install markdownlint
         run: npm install -g markdownlint-cli2
         
+      - name: Auto-fix markdown formatting
+        run: markdownlint-cli2 --fix "**/*.md" "!target/**" "!node_modules/**"
+        
       - name: Lint markdown files
         run: markdownlint-cli2 "**/*.md" "!target/**" "!node_modules/**"

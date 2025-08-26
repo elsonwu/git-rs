@@ -327,6 +327,7 @@ git-rs diff [--cached]
 ### What It Does
 
 Displays line-by-line differences between:
+
 - **Default**: Working directory vs staging area
 - **--cached**: Staging area vs last commit
 

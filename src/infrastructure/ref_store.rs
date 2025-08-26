@@ -314,7 +314,7 @@ impl RefStore {
     /// Store a single reference (convenience method)
     pub fn store_ref(&self, git_ref: &GitRef) -> crate::Result<()> {
         self.save_ref(git_ref)?;
-        
+
         // If this is the current branch, update HEAD to point to it
         if let Some(current_branch) = self.get_current_branch()? {
             if current_branch == git_ref.name && git_ref.ref_type == RefType::Branch {
@@ -322,7 +322,7 @@ impl RefStore {
                 self.save_head(&head)?;
             }
         }
-        
+
         Ok(())
     }
 }

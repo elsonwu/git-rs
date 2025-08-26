@@ -1,5 +1,7 @@
 use crate::domain::index::GitIndex;
-use crate::domain::objects::{CommitObject, GitObject, ObjectHash, Signature, TreeEntry, TreeObject};
+use crate::domain::objects::{
+    CommitObject, GitObject, ObjectHash, Signature, TreeEntry, TreeObject,
+};
 use crate::domain::references::GitRef;
 use crate::infrastructure::index_store::IndexStore;
 use crate::infrastructure::object_store::ObjectStore;
@@ -38,7 +40,7 @@ impl CommitResult {
         } else {
             format!(
                 "✅ Commit created: {} ({} files)",
-                &self.commit_hash.as_str()[..8], 
+                &self.commit_hash.as_str()[..8],
                 self.files_committed
             )
         }
@@ -56,7 +58,7 @@ impl CommitCommand {
         options: CommitOptions,
     ) -> crate::Result<CommitResult> {
         let git_dir = repo_path.join(".git-rs");
-        
+
         // Initialize stores
         let object_store = ObjectStore::new(git_dir.clone());
         let index_store = IndexStore::new(git_dir.join("git-rs-index"));
@@ -64,15 +66,17 @@ impl CommitCommand {
 
         // Load the current index
         let index = index_store.load_index()?;
-        
+
         // Check if there are staged changes
         if index.entries.is_empty() && !options.allow_empty {
-            return Err("No changes added to commit. Use 'git-rs add' to stage files first.".into());
+            return Err(
+                "No changes added to commit. Use 'git-rs add' to stage files first.".into(),
+            );
         }
 
         // Create tree object from index
         let tree_hash = Self::create_tree_from_index(&object_store, &index)?;
-        
+
         // Get current HEAD to determine parent
         let current_head = ref_store.get_head()?;
         let parent_commit = match current_head {
@@ -96,33 +100,28 @@ impl CommitCommand {
 
         // Create signature for author and committer
         let (author, _committer) = Self::create_signatures(&options)?;
-        
+
         // Create commit object
         let parents = if let Some(parent) = parent_commit {
             vec![parent]
         } else {
             vec![]
         };
-        
-        let commit_obj = CommitObject::new(
-            tree_hash.clone(),
-            parents,
-            author,
-            message.to_string(),
-        );
-        
+
+        let commit_obj = CommitObject::new(tree_hash.clone(), parents, author, message.to_string());
+
         let is_root_commit = commit_obj.is_root_commit();
-        
+
         // Store commit object
         let commit_hash = object_store.store_object(&GitObject::Commit(commit_obj))?;
-        
+
         // Update HEAD reference
         let current_branch = ref_store.get_current_branch()?;
         let branch_name = current_branch.unwrap_or_else(|| "main".to_string());
-        
+
         let branch_ref = GitRef::branch(branch_name, commit_hash.clone());
         ref_store.store_ref(&branch_ref)?;
-        
+
         Ok(CommitResult {
             commit_hash,
             tree_hash,
@@ -138,7 +137,7 @@ impl CommitCommand {
         index: &GitIndex,
     ) -> crate::Result<ObjectHash> {
         let mut entries = Vec::new();
-        
+
         for (path, entry) in &index.entries {
             let tree_entry = TreeEntry {
                 mode: entry.mode.clone(),
@@ -147,10 +146,10 @@ impl CommitCommand {
             };
             entries.push(tree_entry);
         }
-        
+
         // Sort entries by name (Git requirement)
         entries.sort_by(|a, b| a.name.cmp(&b.name));
-        
+
         let tree_obj = TreeObject { entries };
         object_store.store_object(&GitObject::Tree(tree_obj))
     }
@@ -159,13 +158,13 @@ impl CommitCommand {
     fn create_signatures(options: &CommitOptions) -> crate::Result<(Signature, Signature)> {
         // Try to get from git config first, then fall back to defaults
         let (default_name, default_email) = Self::get_git_config()?;
-        
+
         let author_name = options.author_name.as_deref().unwrap_or(&default_name);
         let author_email = options.author_email.as_deref().unwrap_or(&default_email);
-        
+
         let author = Signature::new(author_name.to_string(), author_email.to_string());
         let committer = Signature::new(default_name, default_email);
-        
+
         Ok((author, committer))
     }
 
@@ -176,10 +175,10 @@ impl CommitCommand {
         let name = std::env::var("GIT_AUTHOR_NAME")
             .or_else(|_| std::env::var("USER"))
             .unwrap_or_else(|_| "Git User".to_string());
-            
+
         let email = std::env::var("GIT_AUTHOR_EMAIL")
             .unwrap_or_else(|_| format!("{}@example.com", name.to_lowercase().replace(' ', ".")));
-            
+
         Ok((name, email))
     }
 
@@ -188,11 +187,11 @@ impl CommitCommand {
         if message.trim().is_empty() {
             return Err("Commit message cannot be empty".into());
         }
-        
+
         if message.len() > 72 {
             println!("⚠️  Warning: Commit message is longer than 72 characters");
         }
-        
+
         Ok(())
     }
 }
@@ -200,41 +199,41 @@ impl CommitCommand {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::TempDir;
-    use crate::application::init::InitCommand;
     use crate::application::add::{AddCommand, AddOptions};
-    
+    use crate::application::init::InitCommand;
+    use tempfile::TempDir;
+
     #[test]
     fn test_commit_validation() {
         assert!(CommitCommand::validate_message("Valid message").is_ok());
         assert!(CommitCommand::validate_message("").is_err());
         assert!(CommitCommand::validate_message("   \n  ").is_err());
     }
-    
+
     #[test]
     fn test_commit_flow() -> crate::Result<()> {
         let temp_dir = TempDir::new()?;
         let repo_path = temp_dir.path();
-        
+
         // Initialize repository
         InitCommand::init(Some(repo_path))?;
-        
+
         // Create a test file
         let test_file = repo_path.join("test.txt");
         std::fs::write(&test_file, "Hello, World!")?;
-        
+
         // Add the file
         let add_options = AddOptions::default();
         AddCommand::add(repo_path, &["test.txt".to_string()], add_options)?;
-        
+
         // Commit the file
         let commit_options = CommitOptions::default();
         let result = CommitCommand::commit(repo_path, "Initial commit", commit_options)?;
-        
+
         assert!(result.is_root_commit);
         assert_eq!(result.files_committed, 1);
         assert_eq!(result.message, "Initial commit");
-        
+
         Ok(())
     }
 }

@@ -44,14 +44,19 @@ Current implementation status and development roadmap.
 - Gitignore pattern support
 - **Tests**: 2 passing tests for basic status scenarios
 
+#### `git-rs commit` (✅ Complete)
+
+- **Tree Object Creation**: Build directory trees from staging area ✅
+- **Commit Object Generation**: Include metadata (author, timestamp, message) ✅
+- **Reference Updates**: Move branch pointers forward ✅
+- **Parent Chain**: Link commits for history tracking ✅
+- **Root Commit Detection**: Handle first commits properly ✅
+- **Message Validation**: Ensure commit messages are valid ✅
+- **Empty Commit Detection**: Prevent commits with no changes ✅
+- **SHA-1 Integrity**: All objects properly hashed and stored ✅
+- **Tests**: 2 passing tests covering commit workflow and validation
+
 ## 🚧 In Development
-
-### `git-rs commit` (Planned)
-
-- **Tree Object Creation**: Build directory trees from staging area
-- **Commit Object Generation**: Include metadata (author, timestamp, message)
-- **Reference Updates**: Move branch pointers forward
-- **Parent Chain**: Link commits for history tracking
 
 ### `git-rs diff` (Planned)
 
@@ -74,10 +79,10 @@ Current implementation status and development roadmap.
 ### Current Test Coverage
 
 ```text
-Total Tests: 27
-├── Domain Tests: 6 (repository, objects)
+Total Tests: 29
+├── Domain Tests: 6 (repository, objects)  
 ├── Infrastructure Tests: 9 (stores, persistence)
-├── Application Tests: 12 (commands, workflows)
+├── Application Tests: 14 (commands, workflows)
 ```
 
 ### Test Organization
@@ -237,12 +242,12 @@ refactor: improve domain model design
 
 ## 🗺️ Roadmap
 
-### Phase 1: Core Commands (80% Complete)
+### Phase 1: Core Commands (100% Complete)
 
 - ✅ Repository initialization
-- ✅ File staging
+- ✅ File staging  
 - ✅ Status reporting
-- 🚧 Commit creation
+- ✅ Commit creation
 
 ### Phase 2: Content Comparison (0% Complete)
 

@@ -219,15 +219,102 @@ git-rs status
 
 ---
 
+## � `git-rs commit`
+
+Create a new commit from the staged changes.
+
+### Syntax
+
+```bash
+git-rs commit -m "<message>"
+git-rs commit --message "<message>"
+```
+
+### Parameters
+
+- `-m, --message <MSG>` - Commit message (required)
+
+### What It Does
+
+Creates a permanent snapshot of all staged changes, building a complete directory tree and updating the current branch reference to point to the new commit.
+
+### Educational Insights
+
+- **Tree Object Creation**: How Git builds directory trees from the staging area
+- **Commit Object Format**: Understanding Git's commit data structure
+- **Reference Management**: How branch pointers move to track history
+- **SHA-1 Chaining**: How commits form a linked list through parent references
+- **Atomic Operations**: Why commits are all-or-nothing snapshots
+
+### Internal Process
+
+1. **Validation**: Ensure staging area has changes and message is provided
+2. **Tree Building**: Create tree objects recursively from staged files
+3. **Commit Creation**: Build commit object with metadata and tree hash
+4. **Object Storage**: Store commit object with SHA-1 hash
+5. **Reference Update**: Move current branch HEAD to new commit
+
+### Examples
+
+```bash
+# Commit staged changes with a message
+git-rs commit -m "Add user authentication system"
+
+# After staging files:
+git-rs add src/auth.rs
+git-rs add tests/auth_tests.rs
+git-rs commit -m "Implement secure password hashing"
+```
+
+### Commit Object Format
+
+```rust
+// Example commit object structure
+let commit_content = format!(
+    "tree {}\nparent {}\nauthor {} <{}> {}\ncommitter {} <{}> {}\n\n{}",
+    tree_hash,          // Root tree SHA-1
+    parent_hash,        // Previous commit SHA-1
+    author_name, author_email, timestamp,
+    committer_name, committer_email, timestamp,
+    commit_message
+);
+
+// Object format: "commit <size>\0<content>"
+// Storage: .git-rs/objects/ab/cdef123... (compressed)
+```
+
+### Tree Structure
+
+```text
+# Example tree built from staging area:
+100644 blob a1b2c3d4  README.md
+040000 tree e5f6g7h8  src/
+  100644 blob i9j0k1l2    main.rs
+  100644 blob m3n4o5p6    lib.rs
+040000 tree q7r8s9t0  tests/
+  100644 blob u1v2w3x4    integration_tests.rs
+```
+
+### Reference Updates
+
+```bash
+# Before commit
+cat .git-rs/HEAD           # ref: refs/heads/main
+cat .git-rs/refs/heads/main  # 1234567890abcdef... (parent commit)
+
+# After commit  
+cat .git-rs/refs/heads/main  # abcdef1234567890... (new commit)
+```
+
+### Error Conditions
+
+- **No staged changes**: "Nothing to commit, working tree clean"
+- **Missing message**: "Please provide a commit message using -m"
+- **Repository not initialized**: "Not a git repository"
+
+---
+
 ## 🚧 Future Commands (In Development)
-
-### `git-rs commit`
-
-Create a new commit from staged changes.
-
-- **Tree Object Creation**: Build directory tree from staging area
-- **Commit Object**: Store snapshot with metadata (author, timestamp, message)
-- **Reference Update**: Move branch pointer to new commit
 
 ### `git-rs diff`
 

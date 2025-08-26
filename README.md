@@ -471,6 +471,21 @@ This is primarily an educational project, but contributions are welcome:
 - Performance optimizations
 - New command implementations
 
+### Development Setup
+
+Before committing changes, ensure code quality with our formatting script:
+
+```bash
+# Run all formatting and checks
+./scripts/format.sh
+
+# Or manually run individual tools:
+cargo fmt                    # Rust code formatting
+markdownlint-cli2 --fix "**/*.md" "!target/**" "!node_modules/**"  # Markdown formatting
+cargo clippy --all-targets --all-features -- -D warnings  # Linting
+cargo test                   # Test suite
+```
+
 ## 📖 References
 
 - [Git Internals Book](https://git-scm.com/book/en/v2/Git-Internals-Git-Objects)

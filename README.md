@@ -54,8 +54,8 @@ src/
 │   ├── add.rs           # ✅ File staging
 │   ├── status.rs        # ✅ Working tree status
 │   ├── commit.rs        # ✅ Commit creation
-│   ├── diff.rs          # 🚧 Content comparison
-│   └── clone.rs         # 🚧 Repository cloning
+│   ├── diff.rs          # ✅ Content comparison
+│   └── clone.rs         # ✅ Repository cloning
 └── cli/                 # 🖥️ Command line interface
     └── commands.rs      # Command handlers and user interaction
 ```
@@ -290,15 +290,32 @@ index 1234567..abcdefg 100644
 +Added line
 ```
 
-## 🚧 Commands in Development
+### ✅ `git-rs clone` - Repository Cloning
 
-### 🔄 `git-rs clone` - Repository Cloning
+Complete HTTP-based repository cloning with educational insights.
 
-- Remote repository communication
-- Object transfer and verification
-- Reference mapping and checkout
+```bash
+# Clone to directory with same name as repository
+git-rs clone https://github.com/user/repo.git
 
-**Example:**
+# Clone to custom directory name
+git-rs clone https://github.com/user/repo.git my-project
+
+# Clone specific branch
+git-rs clone --branch develop https://github.com/user/repo.git
+```
+
+**Features:**
+
+- HTTP Git protocol implementation
+- Pack file transfer and processing
+- Remote reference discovery and mapping
+- Working directory checkout
+- Educational wire protocol documentation
+
+## 🚧 Future Commands (Planned)
+
+### 🔄 Branch Operations
 
 ```bash
 git-rs status

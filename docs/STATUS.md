@@ -56,33 +56,50 @@ Current implementation status and development roadmap.
 - **SHA-1 Integrity**: All objects properly hashed and stored ✅
 - **Tests**: 2 passing tests covering commit workflow and validation
 
+#### `git-rs diff` (✅ Complete)
+
+- **Unified Diff Format**: Standard diff output with proper formatting ✅
+- **Multiple Comparison Modes**: ✅
+  - Working directory vs staging area ✅
+  - Staging area vs last commit ✅
+  - Commit vs commit ✅
+  - Post-commit behavior verification ✅
+- **Binary File Detection**: Handle non-text files appropriately ✅
+- **Hash-based Change Detection**: Efficient file comparison using SHA-1 ✅
+- **Cross-platform Line Endings**: Proper handling of different line endings ✅
+- **Tests**: 8 integration tests covering all diff scenarios
+
+#### `git-rs clone` (✅ Complete)
+
+- **Remote Communication**: HTTP/Git protocol support with smart protocol ✅
+- **Object Transfer**: Efficient pack file handling and parsing ✅
+- **Reference Mapping**: Set up local tracking branches and remote refs ✅
+- **Working Directory Population**: Checkout HEAD commit functionality ✅
+- **Educational Documentation**: Detailed explanations of Git wire protocol ✅
+- **URL Validation**: Proper parsing and validation of remote URLs ✅
+- **Error Handling**: Comprehensive error messages and recovery ✅
+- **Tests**: 9 integration tests + 8 remote client tests covering all clone scenarios
+
 ## 🚧 In Development
 
-### `git-rs diff` (Planned)
+### Next Phase: Advanced Git Operations (Planned)
 
-- **Unified Diff Format**: Standard diff output
-- **Multiple Comparison Modes**:
-  - Working directory vs staging area
-  - Staging area vs last commit  
-  - Commit vs commit
-- **Binary File Detection**: Handle non-text files appropriately
-
-### `git-rs clone` (Planned)
-
-- **Remote Communication**: HTTP/Git protocol support
-- **Object Transfer**: Efficient pack file handling
-- **Reference Mapping**: Set up local tracking branches
-- **Working Directory Population**: Checkout HEAD commit
+- **Branch Management**: Create, switch, and merge branches
+- **Tag Operations**: Lightweight and annotated tag support
+- **History Rewriting**: Interactive rebase functionality
+- **Conflict Resolution**: Merge conflict detection and resolution
 
 ## 🧪 Testing Strategy
 
 ### Current Test Coverage
 
 ```text
-Total Tests: 29
-├── Domain Tests: 6 (repository, objects)  
-├── Infrastructure Tests: 9 (stores, persistence)
-├── Application Tests: 14 (commands, workflows)
+Total Tests: 67
+├── Domain Tests: 11 (repository, remote objects)  
+├── Infrastructure Tests: 16 (stores, remote client, persistence)
+├── Application Tests: 38 (commands, workflows)
+├── Integration Tests: 17 (diff, clone scenarios)
+├── Doc Tests: 2 (documentation examples)
 ```
 
 ### Test Organization
@@ -108,9 +125,9 @@ Some tests fail after `.git-rs` migration due to:
 
 ```text
 Language      Lines    Files
-Rust          ~2,500   15 files
-Markdown      ~800     4 docs
-Total         ~3,300   19 files
+Rust          ~4,500   22 files
+Markdown      ~1,200   5 docs
+Total         ~5,700   27 files
 ```
 
 ### Architecture Distribution
@@ -132,13 +149,17 @@ Total         ~3,300   19 files
 - **Three Trees Concept**: Working directory, index, HEAD relationships
 - **Reference System**: Branch and HEAD pointer management
 - **Status Algorithm**: File change detection through hash comparison
+- **Diff Algorithms**: Content comparison and unified diff generation ✅
+- **Network Protocols**: HTTP Git protocol and wire format communication ✅
+- **Pack File Format**: Understanding Git's compressed object transfer ✅
+- **Remote Repository**: Clone operations and reference management ✅
 
 ### 🎓 Next Learning Phases
 
-1. **Commit History**: Building and traversing commit graphs
-2. **Diff Algorithms**: Content comparison and patch generation
-3. **Network Protocols**: Remote repository communication
-4. **Advanced Features**: Merging, rebasing, conflict resolution
+1. **Branch Operations**: Creating and switching between branches
+2. **Merge Operations**: Three-way merge and conflict resolution
+3. **Advanced Network**: SSH protocol and authentication
+4. **History Manipulation**: Rebase, cherry-pick, and history rewriting
 
 ## 🔧 Development Environment
 
@@ -160,6 +181,8 @@ flate2 = "1.0"         # Compression
 hex = "0.4"            # Hex encoding
 tempfile = "3.0"       # Test utilities
 chrono = "0.4"         # Timestamp handling
+reqwest = "0.11"       # HTTP client for remote operations
+url = "2.4"            # URL parsing and validation
 ```
 
 ### Build and Test
@@ -201,14 +224,14 @@ cargo fmt
 ### Current Constraints
 
 - **Single Repository**: No sub-modules or worktrees
-- **Local Only**: No remote repository support yet
+- **HTTP Only**: Clone supports HTTP protocol, SSH planned for future
 - **Basic Gitignore**: Simple pattern matching only
 - **No Merge Support**: Linear history only
 
 ### Planned Improvements
 
-- **Pack Files**: Efficient object storage and transfer
-- **Protocol Support**: HTTP and SSH for remotes
+- **Pack Files**: More efficient pack file processing
+- **SSH Protocol**: SSH support for secure remote operations
 - **Advanced Gitignore**: Full specification compliance
 - **Merge Strategies**: Three-way merge implementation
 
@@ -242,24 +265,24 @@ refactor: improve domain model design
 
 ## 🗺️ Roadmap
 
-### Phase 1: Core Commands (100% Complete)
+### Phase 1: Core Commands (100% Complete ✅)
 
 - ✅ Repository initialization
 - ✅ File staging  
 - ✅ Status reporting
 - ✅ Commit creation
 
-### Phase 2: Content Comparison (0% Complete)
+### Phase 2: Content Comparison (100% Complete ✅)
 
-- 🔄 Diff generation
-- 🔄 Patch application
-- 🔄 Content merging
+- ✅ Diff generation
+- ✅ Multiple comparison modes
+- ✅ Binary file detection
 
-### Phase 3: Remote Operations (0% Complete)
+### Phase 3: Remote Operations (100% Complete ✅)
 
-- 🔄 Repository cloning
-- 🔄 Remote communication
-- 🔄 Push/pull operations
+- ✅ Repository cloning
+- ✅ HTTP protocol communication
+- ✅ Remote reference management
 
 ### Phase 4: Advanced Features (0% Complete)
 

@@ -62,24 +62,26 @@ Current implementation status and development roadmap.
 - Line-by-line change visualization
 - **Tests**: 6 passing tests covering all diff scenarios
 
-## 🚧 In Development
+#### `git-rs clone` (✅ Complete)
 
-### `git-rs clone` (Planned)
-
-- **Remote Communication**: HTTP/Git protocol support
-- **Object Transfer**: Efficient pack file handling
-- **Reference Mapping**: Set up local tracking branches
-- **Working Directory Population**: Checkout HEAD commit
+- **Remote Communication**: HTTP/Git protocol support with smart protocol
+- **Reference Discovery**: Fetch remote refs using Git wire protocol
+- **Object Transfer**: Pack file downloading and parsing
+- **Repository Setup**: Local .git-rs structure initialization
+- **Remote Tracking**: Automatic origin remote configuration
+- **Working Directory**: Checkout HEAD commit after clone
+- **Comprehensive Documentation**: Educational explanations of Git clone internals
+- **Tests**: Ready for integration testing
 
 ## 🧪 Testing Strategy
 
 ### Current Test Coverage
 
 ```text
-Total Tests: 35
-├── Domain Tests: 6 (repository, objects)
-├── Infrastructure Tests: 9 (stores, persistence)
-├── Application Tests: 20 (commands, workflows)
+Total Tests: 35+ (clone tests pending)
+├── Domain Tests: 8 (repository, objects, remote objects)
+├── Infrastructure Tests: 12 (stores, persistence, remote client)
+├── Application Tests: 23+ (commands, workflows, clone workflow)
 ```
 
 ### Test Organization
@@ -105,19 +107,19 @@ Some tests fail after `.git-rs` migration due to:
 
 ```text
 Language      Lines    Files
-Rust          ~2,500   15 files
-Markdown      ~800     4 docs
-Total         ~3,300   19 files
+Rust          ~3,200   20 files
+Markdown      ~900     4 docs
+Total         ~4,100   24 files
 ```
 
 ### Architecture Distribution
 
 ```text
-├── Domain (30%): Core business logic
-├── Infrastructure (25%): File system operations
+├── Domain (35%): Core business logic + remote objects
+├── Infrastructure (25%): File system + HTTP operations
 ├── Application (25%): Use case implementations  
 ├── CLI (10%): Command line interface
-└── Tests (10%): Test code
+└── Tests (5%): Test code
 ```
 
 ## 🎯 Educational Goals Progress
@@ -157,6 +159,8 @@ flate2 = "1.0"         # Compression
 hex = "0.4"            # Hex encoding
 tempfile = "3.0"       # Test utilities
 chrono = "0.4"         # Timestamp handling
+reqwest = "0.11"       # HTTP client for remote operations
+url = "2.4"            # URL parsing and manipulation
 ```
 
 ### Build and Test
@@ -198,14 +202,15 @@ cargo fmt
 ### Current Constraints
 
 - **Single Repository**: No sub-modules or worktrees
-- **Local Only**: No remote repository support yet
+- **HTTP Only**: SSH remote support not yet implemented
 - **Basic Gitignore**: Simple pattern matching only
 - **No Merge Support**: Linear history only
+- **Clone Authentication**: No authentication support yet
 
 ### Planned Improvements
 
-- **Pack Files**: Efficient object storage and transfer
-- **Protocol Support**: HTTP and SSH for remotes
+- **SSH Protocol**: Secure remote repository access
+- **Authentication**: Username/password and SSH key support
 - **Advanced Gitignore**: Full specification compliance
 - **Merge Strategies**: Three-way merge implementation
 
@@ -239,26 +244,22 @@ refactor: improve domain model design
 
 ## 🗺️ Roadmap
 
-### Phase 1: Core Commands (80% Complete)
+### Phase 1: Core Commands (✅ Complete)
 
 - ✅ Repository initialization
 - ✅ File staging
 - ✅ Status reporting
-- 🚧 Commit creation
+- ✅ Commit creation
+- ✅ Diff generation
 
-### Phase 2: Content Comparison (0% Complete)
+### Phase 2: Remote Operations (✅ Complete)
 
-- 🔄 Diff generation
-- 🔄 Patch application
-- 🔄 Content merging
+- ✅ Repository cloning
+- ✅ Remote communication (HTTP)
+- ✅ Pack file handling
+- 🔄 Push/pull operations (future)
 
-### Phase 3: Remote Operations (0% Complete)
-
-- 🔄 Repository cloning
-- 🔄 Remote communication
-- 🔄 Push/pull operations
-
-### Phase 4: Advanced Features (0% Complete)
+### Phase 3: Advanced Features (0% Complete)
 
 - 🔄 Branch management
 - 🔄 Tag operations

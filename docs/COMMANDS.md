@@ -379,15 +379,166 @@ git-rs diff  # Shows the addition
 
 ---
 
+## � `git-rs clone`
+
+Clone a repository from a remote location.
+
+### Syntax
+```bash
+git-rs clone <url> [directory]
+```
+
+### What It Does
+Creates a complete local copy of a remote repository, including all objects, references, and history. Sets up remote tracking and checks out the default branch.
+
+### Educational Insights
+- **Git Wire Protocol**: Understanding how Git communicates over HTTP
+- **Pack Files**: Efficient object transfer and storage format
+- **Remote Tracking**: How local repositories track remote state
+- **Reference Discovery**: Protocol for finding available branches and tags
+- **Object Transfer**: Bulk download and decompression of repository objects
+
+### Clone Process Flow
+```
+1. Parse Remote URL     → Validate and extract repository information
+2. Discover References  → GET /info/refs?service=git-upload-pack
+3. Request Pack File    → POST /git-upload-pack with wanted refs
+4. Download Objects     → Receive and decompress pack file
+5. Create Local Repo    → Initialize .git-rs structure
+6. Setup Remote Config  → Configure origin remote tracking
+7. Extract Objects      → Unpack objects into local database
+8. Update References    → Create local branches for remote refs
+9. Checkout HEAD        → Populate working directory
+```
+
+### Examples
+```bash
+# Clone to directory with same name as repository
+git-rs clone https://github.com/user/repo.git
+
+# Clone to custom directory name
+git-rs clone https://github.com/user/repo.git my-project
+
+# Educational example with local path (for testing)
+git-rs clone /path/to/existing/repo.git local-copy
+```
+
+### Internal Process
+
+#### 1. Reference Discovery
+```
+GET /info/refs?service=git-upload-pack HTTP/1.1
+Host: github.com
+
+Response:
+001e# service=git-upload-pack
+004a5d41402a refs/heads/main\0 side-band-64k ofs-delta
+0000
+```
+
+#### 2. Pack File Request
+```
+POST /git-upload-pack HTTP/1.1
+Content-Type: application/x-git-upload-pack-request
+
+0032want 5d41402abc4b2a76b9719d911017c592
+0000
+```
+
+#### 3. Object Storage
+- **Pack File Format**: Objects compressed and delta-encoded
+- **Decompression**: Zlib inflation of individual objects
+- **Hash Verification**: SHA-1 verification of all objects
+- **Storage**: Objects stored in standard `.git-rs/objects/` format
+
+#### 4. Remote Configuration
+```ini
+[remote "origin"]
+    url = https://github.com/user/repo.git
+    fetch = +refs/heads/*:refs/remotes/origin/*
+```
+
+#### 5. Working Directory Setup
+- Extract commit tree from HEAD
+- Create directory structure
+- Write file contents
+- Set file permissions and metadata
+
+### HTTP vs Local Cloning
+```bash
+# HTTP clone (uses Git wire protocol)
+git-rs clone https://github.com/user/repo.git
+
+# Local clone (direct file system copy)
+git-rs clone /path/to/repo.git local-copy
+```
+
+### Clone Directory Structure
+```
+cloned-repo/
+├── .git-rs/
+│   ├── objects/         # All repository objects
+│   ├── refs/
+│   │   ├── heads/       # Local branches
+│   │   └── remotes/     # Remote tracking branches
+│   │       └── origin/  # Origin remote branches
+│   ├── HEAD            # Points to default branch
+│   ├── config          # Repository configuration
+│   └── remotes/        # Remote configuration
+├── file1.txt           # Working directory files
+└── directory/
+    └── file2.txt
+```
+
+### Protocol Details
+
+#### Smart HTTP Protocol
+Git-RS implements the "smart" HTTP protocol used by modern Git servers:
+
+1. **Capability Advertisement**: Server advertises supported features
+2. **Reference Discovery**: Client requests available refs
+3. **Packfile Negotiation**: Client specifies wanted/unwanted objects
+4. **Object Transfer**: Server streams pack file with requested objects
+
+#### Pack File Format
+```
+Pack File Structure:
+- Header: "PACK" + version + object count
+- Objects: Compressed and delta-encoded objects
+- Checksum: SHA-1 of entire pack file
+```
+
+### Error Handling
+```bash
+# Network errors
+Error: Failed to connect to remote repository
+Cause: Connection timeout or DNS resolution failure
+
+# Authentication errors  
+Error: Repository not found or access denied
+Cause: Private repository requiring authentication
+
+# Protocol errors
+Error: Invalid pack file received
+Cause: Corrupted data or protocol mismatch
+```
+
+### Educational Value
+- **Network Protocols**: Understanding Git's HTTP communication
+- **Data Compression**: How Git efficiently transfers large repositories
+- **Distributed Version Control**: Complete repository copies vs centralized systems
+- **Object Database Design**: Content-addressed storage in practice
+- **Remote Tracking**: How local repos stay synchronized with remotes
+
+---
+
 ## 🚧 Future Commands (In Development)
 
-### `git-rs clone`
+### Enhanced Remote Operations
 
-Copy a repository from remote location.
-
-- **Object Transfer**: Download all objects from remote
-- **Reference Mapping**: Set up local branches
-- **Working Directory**: Populate files from HEAD commit
+- **Push**: Upload local changes to remote repository
+- **Pull**: Fetch and merge remote changes  
+- **Remote Management**: Add/remove/configure remote repositories
 
 ---
 

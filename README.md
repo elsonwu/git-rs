@@ -53,7 +53,7 @@ src/
 │   ├── init.rs          # ✅ Repository initialization
 │   ├── add.rs           # ✅ File staging
 │   ├── status.rs        # ✅ Working tree status
-│   ├── commit.rs        # 🚧 Commit creation
+│   ├── commit.rs        # ✅ Commit creation
 │   ├── diff.rs          # 🚧 Content comparison
 │   └── clone.rs         # 🚧 Repository cloning
 └── cli/                 # 🖥️ Command line interface
@@ -199,6 +199,69 @@ Untracked files:            # In working dir, not in index
   new_feature.rs
 ```
 
+### ✅ `git-rs commit` - Commit Creation
+
+**What it does:**
+
+- Creates tree objects from staged files in index
+- Generates commit objects with metadata (author, timestamp, message)
+- Updates branch references to point to new commit
+- Handles both root commits and commits with parents
+- Validates commit messages and detects empty commits
+
+**Educational Insights:**
+
+- How Git creates immutable snapshots from staged changes
+- Tree object construction and hierarchical file organization
+- Commit object format with parent relationships
+- Reference management and branch pointer updates
+- The difference between root commits and regular commits
+
+**Example:**
+
+```bash
+git-rs commit -m "Initial implementation"
+# Creates tree object, commit object, and updates branch ref
+```
+
+**Internal Process:**
+
+1. Load staged files from index: `git-rs-index`
+2. Create tree entries: `{name: "README.md", mode: 100644, hash: "5ab2c3d..."}`
+3. Store tree object: `tree 42\0<tree-content>` → `7def456ghi...`
+4. Create commit object with:
+   - Tree hash: `7def456ghi...`
+   - Parent commits (if any)
+   - Author/committer signatures
+   - Commit message
+5. Store commit object: `commit 156\0<commit-content>` → `9abc123def...`
+6. Update branch reference: `.git-rs/refs/heads/main` → `9abc123def...`
+
+**Commit Object Format:**
+
+```text
+tree 7def456ghi789...
+parent 1abc234def567... (if not root commit)
+author John Doe <john@example.com> 1692000000 +0000
+committer John Doe <john@example.com> 1692000000 +0000
+
+Initial implementation
+```
+
+## 🚧 Commands in Development
+
+### 🔄 `git-rs diff` - Content Comparison
+
+- Unified diff format generation
+- Working directory vs staging area comparison
+- Staged vs committed comparison
+
+### 🔄 `git-rs clone` - Repository Cloning
+
+- Remote repository communication
+- Object transfer and verification
+- Reference mapping and checkout
+
 **Example:**
 
 ```bash
@@ -227,19 +290,13 @@ let hash = sha1::digest(&full_content); // "5ab2c3d4e5f6..."
 
 ## 🚧 Commands in Development
 
-### 🔄 `git-rs commit` - Commit Creation
-
-- Tree object creation from staging area
-- Commit object with metadata (author, timestamp, message)
-- Reference updates (branch pointer advancement)
-
-### 📊 `git-rs diff` - Content Comparison
+### 🔄 `git-rs diff` - Content Comparison
 
 - Unified diff format generation
 - Working directory vs staging area comparison
 - Staged vs committed comparison
 
-### 📥 `git-rs clone` - Repository Cloning
+### � `git-rs clone` - Repository Cloning
 
 - Remote repository communication
 - Object transfer and verification
@@ -274,7 +331,7 @@ git-rs add README.md src/
 # Check status
 git-rs status
 
-# Create commit (when implemented)
+# Create commit
 git-rs commit -m "Initial implementation"
 
 # View differences (when implemented)

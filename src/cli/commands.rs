@@ -1,4 +1,5 @@
 use crate::application::add::{AddCommand, AddOptions};
+use crate::application::commit::{CommitCommand, CommitOptions};
 use crate::application::init::InitCommand;
 use crate::application::status::{StatusCommand, StatusOptions};
 use std::path::Path;
@@ -67,10 +68,27 @@ impl GitCommand {
         Ok(())
     }
 
-    /// Handle `git commit` command (placeholder)
+    /// Handle `git commit` command
     pub fn commit(message: &str) -> crate::Result<()> {
         println!("git-rs commit -m \"{}\"", message);
-        println!("⚠️  Commit functionality not implemented yet");
+        println!("=======================");
+
+        // Validate commit message
+        CommitCommand::validate_message(message)?;
+
+        let current_dir = std::env::current_dir()?;
+        let options = CommitOptions::default();
+
+        let result = CommitCommand::commit(&current_dir, message, options)?;
+
+        println!("\n{}", result.summary());
+        println!("📁 Tree: {}", result.tree_hash);
+        println!("💬 Message: {}", result.message);
+
+        if result.is_root_commit {
+            println!("\n🌱 This is your first commit! Your git-rs journey begins.");
+        }
+
         Ok(())
     }
 

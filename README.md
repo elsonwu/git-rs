@@ -287,23 +287,6 @@ let hash = sha1::digest(&full_content); // "5ab2c3d4e5f6..."
 - Deduplication: same file content stored only once
 - Integrity: any corruption changes the hash
 - Distributed: objects can be safely shared between repositories
-
-## 🚧 Commands in Development
-
-### 🔄 `git-rs diff` - Content Comparison
-
-- Unified diff format generation
-- Working directory vs staging area comparison
-- Staged vs committed comparison
-
-### � `git-rs clone` - Repository Cloning
-
-- Remote repository communication
-- Object transfer and verification
-- Reference mapping and checkout
-
-## 🧪 Testing Strategy
-
 Our test suite covers:
 
 - **Unit tests**: Individual component behavior

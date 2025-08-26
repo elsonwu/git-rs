@@ -1,4 +1,5 @@
 use crate::application::add::{AddCommand, AddOptions};
+use crate::application::clone::{CloneCommand, CloneOptions};
 use crate::application::commit::{CommitCommand, CommitOptions};
 use crate::application::diff::{DiffCommand, DiffOptions};
 use crate::application::init::InitCommand;
@@ -123,13 +124,20 @@ impl GitCommand {
         Ok(())
     }
 
-    /// Handle `git clone` command (placeholder)
+    /// Handle `git clone` command
     pub fn clone(url: &str, directory: Option<&str>) -> crate::Result<()> {
         match directory {
             Some(dir) => println!("git-rs clone {} {}", url, dir),
             None => println!("git-rs clone {}", url),
         }
-        println!("⚠️  Clone functionality not implemented yet");
+        println!("====================");
+
+        let options = CloneOptions::default();
+        let result = CloneCommand::clone(url, directory, options)?;
+
+        println!("\n📊 Clone Summary:");
+        println!("{}", result.summary());
+
         Ok(())
     }
 

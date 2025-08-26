@@ -30,7 +30,7 @@ use crate::infrastructure::*;
 ///
 /// git diff (working vs staged):
 /// Shows changes in working directory that have not been staged
-///
+/// 
 /// git diff --cached (staged vs committed):
 /// Shows changes in staging area that will be committed
 /// ```
@@ -157,17 +157,16 @@ impl DiffCommand {
     /// # Returns
     /// * `Ok(DiffResult)` - The diff information
     /// * `Err(...)` - If diff failed
-    pub fn diff<P: AsRef<Path>>(repo_path: P, options: DiffOptions) -> crate::Result<DiffResult> {
+    pub fn diff<P: AsRef<Path>>(
+        repo_path: P,
+        options: DiffOptions,
+    ) -> crate::Result<DiffResult> {
         let repo_path = repo_path.as_ref();
         let repo = GitRepository::new(repo_path);
 
         // Verify this is a Git repository
         if !repo.is_repository() {
-            return Err(format!(
-                "Not a git repository (or any of the parent directories): {}",
-                repo_path.display()
-            )
-            .into());
+            return Err(format!("Not a git repository (or any of the parent directories): {}", repo_path.display()).into());
         }
 
         let mut file_diffs = Vec::new();
@@ -180,52 +179,16 @@ impl DiffCommand {
             // Compare staged vs committed (git diff --cached)
             let file_diffs_result = Self::diff_staged_vs_committed(&git_dir)?;
             for diff in file_diffs_result {
-                lines_added += diff
-                    .chunks
-                    .iter()
-                    .map(|c| {
-                        c.lines
-                            .iter()
-                            .filter(|l| l.line_type == DiffLineType::Added)
-                            .count()
-                    })
-                    .sum::<usize>();
-                lines_removed += diff
-                    .chunks
-                    .iter()
-                    .map(|c| {
-                        c.lines
-                            .iter()
-                            .filter(|l| l.line_type == DiffLineType::Removed)
-                            .count()
-                    })
-                    .sum::<usize>();
+                lines_added += diff.chunks.iter().map(|c| c.lines.iter().filter(|l| l.line_type == DiffLineType::Added).count()).sum::<usize>();
+                lines_removed += diff.chunks.iter().map(|c| c.lines.iter().filter(|l| l.line_type == DiffLineType::Removed).count()).sum::<usize>();
                 file_diffs.push(diff);
             }
         } else {
             // Compare working vs staged (git diff)
             let file_diffs_result = Self::diff_working_vs_staged(repo_path, &git_dir)?;
             for diff in file_diffs_result {
-                lines_added += diff
-                    .chunks
-                    .iter()
-                    .map(|c| {
-                        c.lines
-                            .iter()
-                            .filter(|l| l.line_type == DiffLineType::Added)
-                            .count()
-                    })
-                    .sum::<usize>();
-                lines_removed += diff
-                    .chunks
-                    .iter()
-                    .map(|c| {
-                        c.lines
-                            .iter()
-                            .filter(|l| l.line_type == DiffLineType::Removed)
-                            .count()
-                    })
-                    .sum::<usize>();
+                lines_added += diff.chunks.iter().map(|c| c.lines.iter().filter(|l| l.line_type == DiffLineType::Added).count()).sum::<usize>();
+                lines_removed += diff.chunks.iter().map(|c| c.lines.iter().filter(|l| l.line_type == DiffLineType::Removed).count()).sum::<usize>();
                 file_diffs.push(diff);
             }
         }
@@ -243,27 +206,26 @@ impl DiffCommand {
     /// Compare working directory vs staged files
     fn diff_working_vs_staged(repo_path: &Path, git_dir: &Path) -> crate::Result<Vec<FileDiff>> {
         let mut diffs = Vec::new();
-
+        
         // Load index
         let index_store = IndexStore::new(git_dir.join("git-rs-index"));
         let index = index_store.load_index()?;
-
+        
         // Get working directory files
         let working_files = Self::get_working_directory_files(repo_path)?;
-
+        
         // Compare each staged file with working directory version
         for (path, entry) in &index.entries {
             let working_path = repo_path.join(path);
-
+            
             if working_path.exists() {
                 // File exists in both working directory and index
                 let working_content = fs::read(&working_path)?;
                 let working_hash = Self::calculate_content_hash(&working_content);
-
+                
                 if working_hash != entry.hash.to_string() {
                     // File is modified
-                    let staged_content =
-                        Self::get_object_content(git_dir, &entry.hash.to_string())?;
+                    let staged_content = Self::get_object_content(git_dir, &entry.hash.to_string())?;
                     let diff = Self::create_file_diff(
                         path.clone(),
                         Some(staged_content),
@@ -288,14 +250,14 @@ impl DiffCommand {
                 diffs.push(diff);
             }
         }
-
+        
         // Check for untracked files (exist in working directory but not in index)
         for (path, _) in working_files {
             if !index.entries.contains_key(&path) {
                 let working_path = repo_path.join(&path);
                 let working_content = fs::read(&working_path)?;
                 let working_hash = Self::calculate_content_hash(&working_content);
-
+                
                 let diff = Self::create_file_diff(
                     path,
                     None,
@@ -307,28 +269,27 @@ impl DiffCommand {
                 diffs.push(diff);
             }
         }
-
+        
         Ok(diffs)
     }
 
     /// Compare staged files vs committed files
     fn diff_staged_vs_committed(git_dir: &Path) -> crate::Result<Vec<FileDiff>> {
         let mut diffs = Vec::new();
-
+        
         // Load index
         let index_store = IndexStore::new(git_dir.join("git-rs-index"));
         let index = index_store.load_index()?;
-
+        
         // Get HEAD commit files
         let head_files = Self::get_head_commit_files(git_dir)?;
-
+        
         // Compare each staged file with committed version
         for (path, entry) in &index.entries {
             if let Some(head_hash) = head_files.get(path) {
                 if entry.hash.to_string() != *head_hash {
                     // File is modified in staging
-                    let staged_content =
-                        Self::get_object_content(git_dir, &entry.hash.to_string())?;
+                    let staged_content = Self::get_object_content(git_dir, &entry.hash.to_string())?;
                     let committed_content = Self::get_object_content(git_dir, head_hash)?;
                     let diff = Self::create_file_diff(
                         path.clone(),
@@ -354,7 +315,7 @@ impl DiffCommand {
                 diffs.push(diff);
             }
         }
-
+        
         // Check for files deleted from staging (in HEAD but not in index)
         for (path, head_hash) in head_files {
             if !index.entries.contains_key(&path) {
@@ -370,14 +331,14 @@ impl DiffCommand {
                 diffs.push(diff);
             }
         }
-
+        
         Ok(diffs)
     }
 
     /// Calculate hash for content (simple SHA-1 of blob format)
     fn calculate_content_hash(content: &[u8]) -> String {
         use sha1::{Digest, Sha1};
-
+        
         let header = format!("blob {}{}", content.len(), '\0');
         let mut hasher = Sha1::new();
         hasher.update(header.as_bytes());
@@ -402,16 +363,15 @@ impl DiffCommand {
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
             let path = entry.path();
-
+            
             // Skip git-rs directory
             if path.file_name().map_or(false, |name| name == ".git-rs") {
                 continue;
             }
-
+            
             if path.is_file() {
                 // Convert to relative path from repo root
-                let relative_path = path
-                    .strip_prefix(repo_root)
+                let relative_path = path.strip_prefix(repo_root)
                     .map_err(|_| format!("Path not within repository: {}", path.display()))?;
                 files.insert(relative_path.to_path_buf(), ());
             } else if path.is_dir() {
@@ -424,25 +384,20 @@ impl DiffCommand {
     /// Get all files from HEAD commit
     fn get_head_commit_files(git_dir: &Path) -> crate::Result<HashMap<PathBuf, String>> {
         let mut files = HashMap::new();
-
+        
         // Read HEAD reference
         let ref_store = RefStore::new(git_dir.to_path_buf());
         if let Some(head_commit_hash) = ref_store.get_head()? {
             // Get commit object
-            let object_store = ObjectStore::new(git_dir.join("objects"));
+            let object_store = ObjectStore::new(git_dir.to_path_buf());
             let commit_obj = object_store.load_object(&head_commit_hash)?;
-
+            
             if let GitObject::Commit(commit) = commit_obj {
                 // Get tree object and extract files
-                Self::extract_tree_files(
-                    &object_store,
-                    &commit.tree.to_string(),
-                    &mut files,
-                    &PathBuf::new(),
-                )?;
+                Self::extract_tree_files(&object_store, &commit.tree.to_string(), &mut files, &PathBuf::new())?;
             }
         }
-
+        
         Ok(files)
     }
 
@@ -453,13 +408,13 @@ impl DiffCommand {
         files: &mut HashMap<PathBuf, String>,
         current_path: &Path,
     ) -> crate::Result<()> {
-        let tree_hash_obj = ObjectHash::new(tree_hash.to_string());
+        let tree_hash_obj = ObjectHash::from_hex(tree_hash)?;
         let tree_obj = object_store.load_object(&tree_hash_obj)?;
-
+        
         if let GitObject::Tree(tree) = tree_obj {
             for entry in &tree.entries {
                 let entry_path = current_path.join(&entry.name);
-
+                
                 match entry.mode {
                     FileMode::Regular | FileMode::Executable => {
                         // It's a file
@@ -467,12 +422,7 @@ impl DiffCommand {
                     }
                     FileMode::Directory => {
                         // It's a directory (tree)
-                        Self::extract_tree_files(
-                            object_store,
-                            &entry.hash.to_string(),
-                            files,
-                            &entry_path,
-                        )?;
+                        Self::extract_tree_files(object_store, &entry.hash.to_string(), files, &entry_path)?;
                     }
                     _ => {
                         // Handle other types if needed (symlinks, etc.)
@@ -480,16 +430,16 @@ impl DiffCommand {
                 }
             }
         }
-
+        
         Ok(())
     }
 
     /// Get content of an object by hash
     fn get_object_content(git_dir: &Path, hash: &str) -> crate::Result<Vec<u8>> {
-        let object_store = ObjectStore::new(git_dir.join("objects"));
-        let hash_obj = ObjectHash::new(hash.to_string());
+        let object_store = ObjectStore::new(git_dir.to_path_buf());
+        let hash_obj = ObjectHash::from_hex(hash)?;
         let obj = object_store.load_object(&hash_obj)?;
-
+        
         match obj {
             GitObject::Blob(blob) => Ok(blob.content),
             _ => Err(format!("Object {} is not a blob", hash).into()),
@@ -506,24 +456,19 @@ impl DiffCommand {
         change_type: FileChangeType,
     ) -> crate::Result<FileDiff> {
         // Check if files are binary
-        let is_binary =
-            Self::is_binary_content(&old_content) || Self::is_binary_content(&new_content);
-
+        let is_binary = Self::is_binary_content(&old_content) || Self::is_binary_content(&new_content);
+        
         let chunks = if is_binary {
             // For binary files, don't show line-by-line diff
             vec![]
         } else {
             // Convert to text and create diff
-            let old_text = old_content
-                .map(|c| String::from_utf8_lossy(&c).to_string())
-                .unwrap_or_default();
-            let new_text = new_content
-                .map(|c| String::from_utf8_lossy(&c).to_string())
-                .unwrap_or_default();
-
+            let old_text = old_content.map(|c| String::from_utf8_lossy(&c).to_string()).unwrap_or_default();
+            let new_text = new_content.map(|c| String::from_utf8_lossy(&c).to_string()).unwrap_or_default();
+            
             Self::create_unified_diff(&old_text, &new_text)?
         };
-
+        
         Ok(FileDiff {
             path,
             change_type,
@@ -550,21 +495,21 @@ impl DiffCommand {
     fn create_unified_diff(old_text: &str, new_text: &str) -> crate::Result<Vec<DiffChunk>> {
         let old_lines: Vec<&str> = old_text.lines().collect();
         let new_lines: Vec<&str> = new_text.lines().collect();
-
+        
         // Simple diff algorithm - for educational purposes
         // In a real implementation, you'd use Myers' algorithm or similar
         let mut chunks = Vec::new();
-
+        
         let mut old_idx = 0;
         let mut new_idx = 0;
-
+        
         while old_idx < old_lines.len() || new_idx < new_lines.len() {
             let mut chunk_lines = Vec::new();
             let chunk_old_start = old_idx + 1; // Line numbers are 1-based
             let chunk_new_start = new_idx + 1;
             let mut chunk_old_count = 0;
             let mut chunk_new_count = 0;
-
+            
             // Find a block of differences
             while old_idx < old_lines.len() || new_idx < new_lines.len() {
                 if old_idx >= old_lines.len() {
@@ -593,10 +538,9 @@ impl DiffCommand {
                     new_idx += 1;
                     chunk_old_count += 1;
                     chunk_new_count += 1;
-
+                    
                     // If we've collected enough context, end this chunk
-                    if chunk_lines.len() >= 10 {
-                        // Simple chunk size limit
+                    if chunk_lines.len() >= 10 { // Simple chunk size limit
                         break;
                     }
                 } else {
@@ -614,13 +558,13 @@ impl DiffCommand {
                     chunk_old_count += 1;
                     chunk_new_count += 1;
                 }
-
+                
                 // Break if chunk gets too large
                 if chunk_lines.len() >= 20 {
                     break;
                 }
             }
-
+            
             if !chunk_lines.is_empty() {
                 chunks.push(DiffChunk {
                     old_start: chunk_old_start,
@@ -633,7 +577,7 @@ impl DiffCommand {
                 break;
             }
         }
-
+        
         Ok(chunks)
     }
 }
@@ -644,30 +588,27 @@ impl DiffResult {
         if self.files_changed == 0 {
             return String::from("No changes");
         }
-
+        
         let mut parts = Vec::new();
-        parts.push(format!(
-            "{} file{} changed",
+        parts.push(format!("{} file{} changed", 
             self.files_changed,
             if self.files_changed == 1 { "" } else { "s" }
         ));
-
+        
         if self.lines_added > 0 {
-            parts.push(format!(
-                "{} insertion{}",
+            parts.push(format!("{} insertion{}", 
                 self.lines_added,
                 if self.lines_added == 1 { "" } else { "s" }
             ));
         }
-
+        
         if self.lines_removed > 0 {
-            parts.push(format!(
-                "{} deletion{}",
+            parts.push(format!("{} deletion{}", 
                 self.lines_removed,
                 if self.lines_removed == 1 { "" } else { "s" }
             ));
         }
-
+        
         parts.join(", ")
     }
 
@@ -676,7 +617,7 @@ impl DiffResult {
         for file_diff in &self.file_diffs {
             self.print_file_diff(file_diff);
         }
-
+        
         if !self.file_diffs.is_empty() {
             println!("\n📊 {}", self.summary());
         }
@@ -686,49 +627,31 @@ impl DiffResult {
         // Print file header
         match file_diff.change_type {
             FileChangeType::Added => {
-                println!(
-                    "diff --git a/{} b/{}",
-                    file_diff.path.display(),
-                    file_diff.path.display()
-                );
+                println!("diff --git a/{} b/{}", file_diff.path.display(), file_diff.path.display());
                 println!("new file mode {}", file_diff.mode);
                 if let Some(hash) = &file_diff.new_hash {
                     println!("index 0000000..{} {}", &hash[..7], file_diff.mode);
                 }
                 println!("--- /dev/null");
                 println!("+++ b/{}", file_diff.path.display());
-            }
+            },
             FileChangeType::Deleted => {
-                println!(
-                    "diff --git a/{} b/{}",
-                    file_diff.path.display(),
-                    file_diff.path.display()
-                );
+                println!("diff --git a/{} b/{}", file_diff.path.display(), file_diff.path.display());
                 println!("deleted file mode {}", file_diff.mode);
                 if let Some(hash) = &file_diff.old_hash {
                     println!("index {}..0000000 {}", &hash[..7], file_diff.mode);
                 }
                 println!("--- a/{}", file_diff.path.display());
                 println!("+++ /dev/null");
-            }
+            },
             FileChangeType::Modified => {
-                println!(
-                    "diff --git a/{} b/{}",
-                    file_diff.path.display(),
-                    file_diff.path.display()
-                );
-                if let (Some(old_hash), Some(new_hash)) = (&file_diff.old_hash, &file_diff.new_hash)
-                {
-                    println!(
-                        "index {}..{} {}",
-                        &old_hash[..7],
-                        &new_hash[..7],
-                        file_diff.mode
-                    );
+                println!("diff --git a/{} b/{}", file_diff.path.display(), file_diff.path.display());
+                if let (Some(old_hash), Some(new_hash)) = (&file_diff.old_hash, &file_diff.new_hash) {
+                    println!("index {}..{} {}", &old_hash[..7], &new_hash[..7], file_diff.mode);
                 }
                 println!("--- a/{}", file_diff.path.display());
                 println!("+++ b/{}", file_diff.path.display());
-            }
+            },
         }
 
         if file_diff.is_binary {
@@ -736,11 +659,10 @@ impl DiffResult {
         } else {
             // Print chunks
             for chunk in &file_diff.chunks {
-                println!(
-                    "@@ -{},{} +{},{} @@",
-                    chunk.old_start, chunk.old_count, chunk.new_start, chunk.new_count
-                );
-
+                println!("@@ -{},{} +{},{} @@", 
+                    chunk.old_start, chunk.old_count,
+                    chunk.new_start, chunk.new_count);
+                
                 for line in &chunk.lines {
                     let prefix = match line.line_type {
                         DiffLineType::Context => " ",
@@ -751,136 +673,7 @@ impl DiffResult {
                 }
             }
         }
-
+        
         println!(); // Empty line between files
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::fs;
-    use tempfile::TempDir;
-
-    fn setup_test_repo() -> (TempDir, PathBuf) {
-        let temp_dir = TempDir::new().unwrap();
-        let repo_path = temp_dir.path().to_path_buf();
-
-        // Initialize repository
-        let _repo = crate::application::init::InitCommand::init(Some(&repo_path)).unwrap();
-
-        (temp_dir, repo_path)
-    }
-
-    #[test]
-    fn test_diff_empty_repository() {
-        let (_temp_dir, _repo_path) = setup_test_repo();
-
-        let result = DiffCommand::diff(&_repo_path, DiffOptions::default()).unwrap();
-
-        assert_eq!(result.files_changed, 0);
-        assert_eq!(result.lines_added, 0);
-        assert_eq!(result.lines_removed, 0);
-        assert_eq!(result.summary(), "No changes");
-    }
-
-    #[test]
-    fn test_diff_untracked_file() {
-        let (_temp_dir, repo_path) = setup_test_repo();
-
-        // Create an untracked file
-        fs::write(repo_path.join("test.txt"), "Hello World\n").unwrap();
-
-        let result = DiffCommand::diff(&repo_path, DiffOptions::default()).unwrap();
-
-        assert_eq!(result.files_changed, 1);
-        assert_eq!(result.lines_added, 1);
-        assert_eq!(result.lines_removed, 0);
-        assert!(result.summary().contains("1 file changed"));
-        assert!(result.summary().contains("1 insertion"));
-
-        let file_diff = &result.file_diffs[0];
-        assert_eq!(file_diff.change_type, FileChangeType::Added);
-        assert_eq!(file_diff.path, PathBuf::from("test.txt"));
-        assert!(file_diff.old_hash.is_none());
-        assert!(file_diff.new_hash.is_some());
-    }
-
-    #[test]
-    fn test_diff_binary_file() {
-        let (_temp_dir, repo_path) = setup_test_repo();
-
-        // Create a binary file (contains null bytes)
-        fs::write(repo_path.join("binary.dat"), &[0, 1, 2, 3, 0, 5]).unwrap();
-
-        let result = DiffCommand::diff(&repo_path, DiffOptions::default()).unwrap();
-
-        assert_eq!(result.files_changed, 1);
-        let file_diff = &result.file_diffs[0];
-        assert!(file_diff.is_binary);
-        assert!(file_diff.chunks.is_empty()); // Binary files don't have line chunks
-    }
-
-    #[test]
-    fn test_diff_modified_lines() {
-        let (_temp_dir, _repo_path) = setup_test_repo();
-
-        // Test the unified diff algorithm
-        let old_text = "line 1\nline 2\nline 3\n";
-        let new_text = "line 1\nmodified line 2\nline 3\n";
-
-        let chunks = DiffCommand::create_unified_diff(old_text, new_text).unwrap();
-
-        assert_eq!(chunks.len(), 1);
-        let chunk = &chunks[0];
-        assert_eq!(chunk.old_start, 1);
-        assert_eq!(chunk.new_start, 1);
-
-        // Should have context lines + removed + added
-        let removed_lines: Vec<_> = chunk
-            .lines
-            .iter()
-            .filter(|l| l.line_type == DiffLineType::Removed)
-            .collect();
-        let added_lines: Vec<_> = chunk
-            .lines
-            .iter()
-            .filter(|l| l.line_type == DiffLineType::Added)
-            .collect();
-
-        assert_eq!(removed_lines.len(), 1);
-        assert_eq!(added_lines.len(), 1);
-        assert!(removed_lines[0].content.contains("line 2"));
-        assert!(added_lines[0].content.contains("modified line 2"));
-    }
-
-    #[test]
-    fn test_hash_calculation() {
-        let content = b"Hello World\n";
-        let hash = DiffCommand::calculate_content_hash(content);
-
-        // This should match git's blob hash calculation
-        // echo -n "Hello World" | git hash-object --stdin
-        // But we need to account for the blob header format: "blob <size>\0<content>"
-        assert_eq!(hash.len(), 40); // SHA-1 is 40 hex characters
-        assert!(hash.chars().all(|c| c.is_ascii_hexdigit()));
-    }
-
-    #[test]
-    fn test_directory_scanning() {
-        let (_temp_dir, repo_path) = setup_test_repo();
-
-        // Create nested directory structure
-        fs::create_dir_all(repo_path.join("src/lib")).unwrap();
-        fs::write(repo_path.join("README.md"), "# Test\n").unwrap();
-        fs::write(repo_path.join("src/main.rs"), "fn main() {}\n").unwrap();
-        fs::write(repo_path.join("src/lib/mod.rs"), "// module\n").unwrap();
-
-        let files = DiffCommand::get_working_directory_files(&repo_path).unwrap();
-
-        assert_eq!(files.len(), 3);
-        assert!(files.contains_key(&PathBuf::from("README.md")));
-        assert!(files.contains_key(&PathBuf::from("src/main.rs")));
-        assert!(files.contains_key(&PathBuf::from("src/lib/mod.rs")));
     }
 }

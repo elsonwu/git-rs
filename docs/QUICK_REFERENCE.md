@@ -138,33 +138,36 @@ git-rs clone https://github.com/user/repo.git my-project
 
 ### Intermediate
 
-5. `git-rs diff` - Understand change detection
-6. `git-rs clone` - Learn remote operations
-7. Explore `.git-rs/` directory structure
-8. Compare with real Git using `--git-compat` mode
+1. `git-rs diff` - Understand change detection
+2. `git-rs clone` - Learn remote operations
+3. Explore `.git-rs/` directory structure
+4. Compare with real Git using `--git-compat` mode
 
 ### Advanced (Future)
 
-9. `git-rs log` - Commit graph traversal (when implemented)
-10. Branch and merge operations (planned)
-11. Understanding pack files and compression
-12. Building your own Git features
+1. `git-rs log` - Commit graph traversal (when implemented)
+2. Branch and merge operations (planned)
+3. Understanding pack files and compression
+4. Building your own Git features
 
 ## 🔍 Troubleshooting
 
 ### Common Issues
 
-**"Not a git repository"**
+#### "Not a git repository"
+
 - Make sure you ran `git-rs init` first
 - Check you're in the right directory
 - Use `git-rs --git-compat` if testing with real Git
 
-**File not found errors**
+#### File not found errors
+
 - Ensure file paths are correct
 - Check file permissions  
 - Use relative paths from repository root
 
-**Compatibility mode not working**
+#### Compatibility mode not working
+
 - Use `--git-compat` before the command name
 - Currently only `init` command fully supports compatibility mode
 - Other commands have placeholders (development in progress)
@@ -180,6 +183,7 @@ git-rs clone https://github.com/user/repo.git my-project
 ---
 
 For complete documentation, see:
+
 - [`docs/COMMANDS.md`](COMMANDS.md) - Detailed command reference
 - [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) - Git internals guide  
 - [`docs/GIT_INTERNALS.md`](GIT_INTERNALS.md) - Deep technical details

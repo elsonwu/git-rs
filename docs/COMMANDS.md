@@ -589,6 +589,7 @@ git-rs log --count 10
 ### Implementation Notes
 
 This command requires:
+
 - Commit object parsing and traversal
 - Parent relationship following
 - Chronological sorting

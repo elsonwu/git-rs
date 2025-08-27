@@ -11,7 +11,7 @@ This directory contains comprehensive CI/CD workflows for the git-rs project to 
 
 - **Format Check**: Ensures code follows Rust formatting standards (`cargo fmt`)
 - **Clippy Lint**: Static analysis and best practices enforcement (`cargo clippy`)  
-- **Cross-Platform Tests**: Tests on Ubuntu, Windows, macOS with stable/beta Rust
+- **Cross-Platform Tests**: Tests on Ubuntu and macOS (Windows not supported)
 - **MSRV Check**: Ensures compatibility with Minimum Supported Rust Version (1.70.0)
 - **Documentation Build**: Verifies all documentation builds correctly
 - **Security Audit**: Checks for known security vulnerabilities
@@ -24,9 +24,9 @@ This directory contains comprehensive CI/CD workflows for the git-rs project to 
 **Triggers**: Git tags (`v*`), Manual dispatch
 **Purpose**: Automated release builds and deployment
 
-- **Multi-Platform Builds**: Creates binaries for Linux, macOS (x64/ARM), Windows
+- **Multi-Platform Builds**: Creates binaries for Linux and macOS (x64/ARM)
 - **GitHub Releases**: Automatically creates releases with binaries
-- **Cross-Compilation**: Ensures git-rs works on all major platforms
+- **Cross-Compilation**: Ensures git-rs works on supported platforms
 - **Artifact Upload**: Makes binaries available for download
 
 ### [`docs.yml`](.github/workflows/docs.yml) - Documentation Quality

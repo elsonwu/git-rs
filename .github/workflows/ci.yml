@@ -52,12 +52,13 @@ jobs:
           RUSTDOCFLAGS: -D warnings
 
   # Cross-platform test (only on main branch to save minutes)
+  # Note: Windows is not supported due to filesystem differences
   cross-platform:
     name: Cross-platform Tests
     if: github.ref == 'refs/heads/main'
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     
     steps:

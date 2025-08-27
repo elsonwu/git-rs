@@ -389,7 +389,7 @@ Our test suite covers:
 - **Unit tests**: Individual component behavior
 - **Integration tests**: Command workflows
 - **Property tests**: Hash consistency, object integrity
-- **Cross-platform tests**: Windows, macOS, Linux compatibility
+- **Cross-platform tests**: macOS, Linux compatibility (Windows not supported)
 
 ```bash
 cargo test                    # Run all tests

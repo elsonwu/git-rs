@@ -58,7 +58,7 @@ Welcome to the comprehensive documentation for Git-RS, an educational Git implem
 ### DevOps & Quality
 
 - **CI/CD Pipelines**: GitHub Actions for testing, linting, and releases
-- **Cross-Platform**: Support for Linux, macOS, and Windows
+- **Cross-Platform**: Support for Linux and macOS (Windows not supported due to filesystem differences)
 - **Documentation**: Automated docs generation and link validation
 - **Security**: Dependency auditing and vulnerability scanning
 

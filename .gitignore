@@ -18,6 +18,14 @@ test_repo/
 test_log/
 temp_*/
 
+# Duplicate/backup documentation files
+*_NEW.md
+*_FIXED.md
+*_OLD.md
+*_BACKUP.md
+*-simple.yml
+*-backup.yml
+
 # RustRover
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore

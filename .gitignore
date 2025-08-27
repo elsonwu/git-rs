@@ -15,6 +15,7 @@ target
 
 # Test repositories and temporary directories
 test_repo/
+test_log/
 temp_*/
 
 # RustRover

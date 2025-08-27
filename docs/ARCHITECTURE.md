@@ -2,9 +2,13 @@
 
 This document provides a deep dive into Git's internal mechanisms as implemented in git-rs.
 
-## 📂 Repository Structure (.git-rs/)
+## 📂 Repository Structure
 
-Our implementation uses `.git-rs/` to avoid conflicts with real Git repositories:
+Git-rs supports two directory structure modes for different use cases:
+
+### Educational Mode (Default): `.git-rs/`
+
+Safe for learning - uses `.git-rs/` to avoid conflicts with real Git repositories:
 
 ```text
 .git-rs/
@@ -28,6 +32,32 @@ Our implementation uses `.git-rs/` to avoid conflicts with real Git repositories
 ├── config              # Repository configuration
 └── description         # Repository description
 ```
+
+### Git Compatibility Mode: `.git/`
+
+Activated with `--git-compat` flag - uses standard Git structure for interoperability:
+
+```text
+.git/
+├── objects/              # Same object database structure
+│   ├── 5a/
+│   │   └── 1b2c3d4e...  # Identical object format
+│   └── ...              # Same as educational mode
+├── refs/                # Same reference structure
+│   ├── heads/          
+│   └── tags/           
+├── HEAD                 # Same HEAD format
+├── index               # Standard Git index name
+├── config              # Same configuration format
+└── description         # Same description format
+```
+
+### Mode Selection
+
+| Command | Directory Created | Index File | Use Case |
+|---------|-------------------|------------|----------|
+| `git-rs init` | `.git-rs/` | `git-rs-index` | Safe learning |
+| `git-rs --git-compat init` | `.git/` | `index` | Git compatibility testing |
 
 ## 🎯 Object Model
 
@@ -306,8 +336,8 @@ cat .git-rs/refs/heads/main
 
 ## 🎯 Next Steps for Learning
 
-1. **Implement commits**: Create tree and commit objects
-2. **Add diff**: Compare content between states  
-3. **Branch operations**: Create, switch, merge branches
-4. **Remote operations**: Clone, fetch, push
-5. **Advanced features**: Rebasing, cherry-picking, submodules
+1. **Implement log command**: Display commit history and graph traversal
+2. **Branch operations**: Create, switch, merge branches  
+3. **Enhanced remote operations**: Push, fetch, pull
+4. **Advanced features**: Rebasing, cherry-picking, submodules
+5. **Performance optimization**: Pack files, delta compression

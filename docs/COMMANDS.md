@@ -548,7 +548,106 @@ Cause: Corrupted data or protocol mismatch
 
 ---
 
-## 🚧 Future Commands (In Development)
+## � `git-rs log`
+
+Display commit history in reverse chronological order.
+
+### Syntax
+
+```bash
+git-rs log [-n <count>]
+```
+
+### Status
+
+⚠️ **Currently Not Implemented** - This command is planned for future development.
+
+### What It Will Do (When Implemented)
+
+Show the commit history starting from HEAD, walking backwards through parent commits to display the repository's evolution over time.
+
+### Educational Insights (Planned)
+
+- **Commit Graph Walking**: How Git traverses the commit DAG
+- **Object Relationships**: Understanding parent-child commit relationships
+- **History Visualization**: Representing branching and merging over time
+- **Metadata Display**: Author, committer, timestamps, and messages
+
+### Future Syntax Examples
+
+```bash
+# Show all commit history
+git-rs log
+
+# Show last 5 commits
+git-rs log -n 5
+
+# Show last 10 commits  
+git-rs log --count 10
+```
+
+### Implementation Notes
+
+This command requires:
+
+- Commit object parsing and traversal
+- Parent relationship following
+- Chronological sorting
+- Formatted output display
+
+---
+
+## 🌐 Global Options
+
+### `--git-compat` Flag
+
+**Purpose**: Choose between educational mode and Git compatibility mode for directory structure.
+
+**Syntax**: Add `--git-compat` before any command.
+
+```bash
+# Educational mode (default) - Safe for learning
+git-rs init              # Creates .git-rs/ directory
+git-rs add file.txt      # Uses .git-rs/git-rs-index
+
+# Git compatibility mode - Interoperable with real Git  
+git-rs --git-compat init        # Creates .git/ directory
+git-rs --git-compat add file.txt # Uses .git/index
+```
+
+**Educational Insights**:
+
+- **Safety vs Compatibility**: Default mode prevents conflicts with real Git repos
+- **Directory Structure**: Understanding Git's standard .git/ organization
+- **Index File Naming**: Standard 'index' vs educational 'git-rs-index'
+- **Interoperability**: Testing git-rs output with real Git tools
+
+**When to Use Each Mode**:
+
+| Mode | Use Case | Directory | Index File |
+|------|----------|-----------|------------|
+| Educational (default) | Learning Git internals safely | `.git-rs/` | `git-rs-index` |
+| Compatible (`--git-compat`) | Testing with real Git tools | `.git/` | `index` |
+
+**Examples**:
+
+```bash
+# Safe learning environment (default)
+mkdir learn-git && cd learn-git
+git-rs init                    # Creates .git-rs/
+echo "test" > file.txt
+git-rs add file.txt           # Safe - won't conflict with real Git
+
+# Git compatibility testing
+mkdir test-compat && cd test-compat  
+git-rs --git-compat init      # Creates .git/
+git-rs --git-compat add file.txt
+git status                    # Can use real Git to verify!
+```
+
+---
+
+## �🚧 Future Commands (In Development)
 
 ### Enhanced Remote Operations
 

@@ -17,9 +17,11 @@ This project implements core Git functionality from scratch to understand:
 - Git's object model and SHA-1 hash-based storage system
 - How Git tracks file changes across working directory, staging area, and commits
 
-## ⚠️ Important: Educational Repository Structure
+## ⚠️ Important: Flexible Repository Structure
 
-**For learning purposes, this implementation uses `.git-rs/` instead of `.git/` to avoid conflicts with actual Git repositories.**
+Git-rs supports two modes for different learning and testing needs:
+
+### 🎓 Educational Mode (Default - Safe for Learning)
 
 When you run `git-rs init`, it creates:
 
@@ -31,6 +33,32 @@ This allows you to:
 - Run git-rs commands in existing Git repositories without conflicts
 - Compare git-rs behavior with real Git side-by-side
 - Learn safely without affecting your actual Git workflow
+
+### 🔄 Git Compatibility Mode (Advanced - Real Git Interoperability)
+
+When you run `git-rs --git-compat init`, it creates:
+
+- `.git/` directory (standard Git structure)
+- `.git/index` file (standard Git index)
+
+This enables you to:
+
+- Test git-rs output with real Git commands
+- Verify compatibility with existing Git tools
+- Switch between git-rs and git seamlessly
+
+**Examples:**
+
+```bash
+# Safe learning mode (default)
+git-rs init                    # Creates .git-rs/
+git-rs add file.txt           # Uses .git-rs/git-rs-index
+
+# Git compatibility mode  
+git-rs --git-compat init      # Creates .git/
+git-rs --git-compat add file.txt  # Uses .git/index
+git status                    # Can use real Git to check!
+```
 
 ## 🏗️ Architecture (Domain-Driven Design)
 
@@ -315,7 +343,23 @@ git-rs clone --branch develop https://github.com/user/repo.git
 
 ## 🚧 Future Commands (Planned)
 
-### 🔄 Branch Operations
+### � `git-rs log` - Commit History
+
+**Status**: Not yet implemented (placeholder exists in CLI)
+
+```bash
+git-rs log           # Show all commit history
+git-rs log -n 5      # Show last 5 commits
+```
+
+**Will implement:**
+
+- Commit graph traversal and display
+- Parent relationship following
+- Chronological sorting with metadata
+- Formatted history output
+
+### �🔄 Branch Operations
 
 ```bash
 git-rs status

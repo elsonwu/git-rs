@@ -3,6 +3,7 @@ use crate::application::clone::{CloneCommand, CloneOptions};
 use crate::application::commit::{CommitCommand, CommitOptions};
 use crate::application::diff::{DiffCommand, DiffOptions};
 use crate::application::init::InitCommand;
+use crate::application::log::{LogCommand, LogOptions};
 use crate::application::status::{StatusCommand, StatusOptions};
 use crate::domain::repository::GitCompatMode;
 use std::path::Path;
@@ -142,13 +143,27 @@ impl GitCommand {
         Ok(())
     }
 
-    /// Handle `git log` command (placeholder)  
+    /// Handle `git log` command
     pub fn log(count: Option<usize>) -> crate::Result<()> {
-        match count {
-            Some(n) => println!("git-rs log -n {}", n),
-            None => println!("git-rs log"),
+        println!("git-rs log");
+        println!("==========");
+
+        let options = LogOptions { max_count: count };
+
+        let result = LogCommand::log(".", options)?;
+
+        if result.entries.is_empty() {
+            println!("📭 No commits found in this repository");
+            return Ok(());
         }
-        println!("⚠️  Log functionality not implemented yet");
+
+        // Display the log entries
+        print!("{}", LogCommand::format_log_result(&result));
+
+        if result.has_more && count.is_some() {
+            println!("💡 Use 'git-rs log' (without -n) to see all commits");
+        }
+
         Ok(())
     }
 
@@ -208,9 +223,26 @@ impl GitCommand {
     }
 
     /// Handle `git log` command with compatibility mode
-    pub fn log_with_compat(count: Option<usize>, _git_compat: GitCompatMode) -> crate::Result<()> {
-        // For now, just delegate to the original log method
-        // TODO: Pass git_compat to LogCommand when it supports it
-        Self::log(count)
+    pub fn log_with_compat(count: Option<usize>, git_compat: GitCompatMode) -> crate::Result<()> {
+        println!("git-rs log");
+        println!("==========");
+
+        let options = LogOptions { max_count: count };
+
+        let result = LogCommand::log_with_compat(".", options, git_compat)?;
+
+        if result.entries.is_empty() {
+            println!("📭 No commits found in this repository");
+            return Ok(());
+        }
+
+        // Display the log entries
+        print!("{}", LogCommand::format_log_result(&result));
+
+        if result.has_more && count.is_some() {
+            println!("💡 Use 'git-rs log' (without -n) to see all commits");
+        }
+
+        Ok(())
     }
 }

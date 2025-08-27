@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "entries": {
+    "hello.txt": {
+      "ctime": "2025-08-26T15:00:27Z",
+      "mtime": "2025-08-26T15:00:27Z",
+      "dev": 16777232,
+      "ino": 8569853,
+      "mode": "Regular",
+      "uid": 501,
+      "gid": 20,
+      "size": 15,
+      "hash": "57ed42ffe6ca7b71ffd8def542eb0faae0a21183",
+      "stage": 0,
+      "path": "hello.txt"
+    }
+  }
+}
